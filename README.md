@@ -80,4 +80,4 @@ I pass the prepared DataFrame into the functions, so the preparation cell must r
 
 ### AI assistance
 
-I used OpenAI Codex to help draft plotting, peak-finding, comparison, and anomaly-inspection code, explain data types and cumulative counts, and prepare documentation and repository uploads. I ran the notebook and proposed centralizing the daily-case calculation. Codex also helped phrase my interpretation of Florida's anomalies in English and independently checked the numerical results. I am responsible for reviewing the code and explanations and being able to explain and defend my work.
+I used OpenAI Codex to assist with code generation, README writing, and code maintenance. I also discussed some ideas with Codex during development. I made the overall decisions, selected the chart types in line with the assignment requirements, and developed the substantive answers and interpretations. Codex helped implement and express these choices, while I retained responsibility for the final work.
