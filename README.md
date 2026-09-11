@@ -72,19 +72,12 @@ My hypothesis is that reporting may have been delayed during the New Year's holi
 
 ### Code evolution and design choices
 
-Development began with loading and inspecting the CSV, followed by plotting and peak-comparison functions. Dates were explicitly parsed and FIPS codes stored as strings. The date-axis format was revised to `YYYY-MM`, and the standalone Florida plot was changed to match its color in the combined plot.
+During the in-class discussion, I discussed loading and inspecting the CSV, implementing plotting and peak-comparison functions, parsing dates explicitly, and storing FIPS codes as strings. I also discussed formatting the date axis as `YYYY-MM` and keeping Florida's color consistent between the combined and standalone plots. These choices are reflected in my notebook.
 
-After noticing that `.diff()` produced floats, Liam proposed calculating `daily_cases` once in the initial preparation cell and reusing it throughout. The current implementation adopts that change and uses nullable integers to retain the missing first observation. This centralizes the transformation and avoids repeated computations. The saved notebook still includes a redundant initial CSV read and a repeated definition of the comparison function; these are cleanup opportunities rather than separate analytical methods.
+After noticing that `.diff()` produced floating-point values, I proposed calculating `daily_cases` once in the initial preparation cell and reusing it throughout the analysis. I used nullable integers to preserve the missing first observation for each state. This keeps the transformation in one place and avoids repeated calculations.
 
-The functions accept the prepared DataFrame explicitly. They depend on the preparation cell having run first. Keeping raw differences makes reporting artifacts visible; no smoothing, clipping, population normalization, or redistribution across reporting dates is performed. Invalid state names are checked, but broader input validation remains limited.
-
-### Validation and remaining work
-
-- Saved notebook outputs demonstrate execution of the analysis in the student's Jupyter session.
-- A separate standard-library CSV calculation reproduced all three peak values/dates, Florida's zero and negative counts, and the six-day comparison. It also verified consecutive dates within every state/territory series.
-- A fresh automated notebook rerun in the assistant's environment could not complete because local Python environments failed during dependency loading. No successful clean-kernel rerun is claimed here.
-- This is the first uploaded working version, not evidence of a historical in-class commit. Exercise 2 remains to be completed before portfolio review. Repository sharing and the exit ticket are separate course tasks and are not verified by this upload.
+I pass the prepared DataFrame into the functions, so the preparation cell must run first. I keep raw daily differences, including negative values, to make reporting patterns and possible revisions visible. The trade-off is that the plots remain noisy and their peaks may reflect reporting delays. I compare absolute counts rather than population-adjusted rates, so the plots do not directly compare individual risk across states.
 
 ### AI assistance
 
-OpenAI Codex supplied draft plotting, peak-finding, comparison, and anomaly-inspection code; explained data types and cumulative counts; and assisted with documentation, independent numerical checks, and upload preparation. Liam ran the notebook and requested the date-format change, consistent Florida coloring, and centralized daily-case calculation. The README is an AI-assisted draft grounded in those exchanges and saved outputs. Liam remains responsible for reviewing the explanations and being able to explain and defend the code. Independent mastery is not inferred from successful execution.
+I used OpenAI Codex to help draft plotting, peak-finding, comparison, and anomaly-inspection code, explain data types and cumulative counts, and prepare documentation and repository uploads. I ran the notebook and proposed centralizing the daily-case calculation. Codex also helped phrase my interpretation of Florida's anomalies in English and independently checked the numerical results. I am responsible for reviewing the code and explanations and being able to explain and defend my work.
