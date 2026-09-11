@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local upstream data archive (retrieve the verified input with download_data.py)
+/covid-19-data-master/
+.DS_Store
+
