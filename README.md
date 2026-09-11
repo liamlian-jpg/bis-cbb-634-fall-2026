@@ -64,9 +64,11 @@ The notebook's Connecticut–Florida example finds that **Florida peaked 6 days 
 
 ![Florida daily reported changes](florida_daily_cases.png)
 
-The notebook examines the ten largest increases and the records within seven days of Florida's largest increase. On January 1–3, 2022, the cumulative count remained 4,166,392, producing three zero increments. On January 4 it rose to 4,360,178, an increase of 193,786. Across non-missing daily differences there are **287 zero-increase days** and **one negative revision**, −40,527 on June 4, 2021.
+I noticed one negative daily change in Florida's case data: −40,527 on June 4, 2021. This might reflect a revision or correction to previously reported cumulative counts.
 
-**Hypothesis:** the sequence of unchanged totals followed by a large jump is consistent with delayed or batched reporting, potentially including holiday-related delays. The negative change is consistent with retrospective corrections. These are explanations suggested by the data, not verified causes; confirming them requires jurisdiction-specific reporting documentation. Zero reported change does not prove zero new infections, and the January 4 spike should not be interpreted as 193,786 infections occurring that day.
+I also noticed three consecutive days with zero reported increase immediately before the peak. From January 1 through January 3, 2022, the cumulative count stayed at 4,166,392. On January 4, it increased by 193,786, producing the largest daily increase in the dataset for Florida.
+
+My hypothesis is that reporting may have been delayed during the New Year's holiday period, with cases from the preceding days reported together on January 4. If so, the peak could partly reflect a reporting backlog rather than infections occurring on a single day. The three zero increases describe unchanged reported totals, not necessarily an absence of new cases. This holiday-related explanation is a hypothesis based on the pattern; I have not verified the reporting schedule.
 
 ### Code evolution and design choices
 
