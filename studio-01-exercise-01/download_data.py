@@ -5,7 +5,7 @@ from urllib.request import urlopen
 
 URL = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv"
 EXPECTED_SHA256 = "0b202f6ac8bad66b70b9e344c07155e3f1ce9338f86192af072b56ce448dfc43"
-DESTINATION = Path(__file__).resolve().parent / "covid-19-data-master/us-states.csv"
+DESTINATION = Path(__file__).resolve().parent / "us-states.csv"
 
 
 def main():
