@@ -6,8 +6,8 @@
 
 ## Exercises
 
-- [Studio 1 — Exercise 1: COVID-19 case data](studio-01-exercise-01/README.md)
+- [Studio 1 — Standards exercises](standard-exercises/README.md)
 
 ## Organization
 
-Each exercise has one folder. Its notebook, README, figures, helper scripts, and required local data live directly in that folder, without additional subfolders. The structure can be revised if the portfolio grows.
+Studio 1 exercises share the `standard-exercises/` folder. Their notebooks, README, figures, helper scripts, and required local data live directly in that folder, without additional subfolders. The structure can be revised if the portfolio grows.
