@@ -7,7 +7,7 @@
 
 ## Code and progress
 
-[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1h. Exercise 1 is complete; Exercise 2 is not completed in this update.
+[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1h. Exercise 1 is complete.
 
 To reproduce, download `patients.xml` from the authorized [Canvas data file](https://yale.instructure.com/courses/121398/files/13049637) and place it next to the notebook. The XML input remains local and is excluded from Git. In an environment with NumPy, pandas, matplotlib, and Jupyter installed, run from this folder:
 
@@ -307,10 +307,6 @@ Additional synthetic checks passed:
 | No male records | (40, female), (45, unknown) | `[40, 50)` | (2, 0) |
 | Empty input | No records | `[40, 50)` | (0, 0) |
 
-## Exercise 1 completion
-
-Tasks 1a–1h are implemented in the notebook and documented here: XML parsing, age and gender visualizations, duplicate analysis, age sorting, single-pass top-two retrieval, exact-age searches, threshold counting, age-range counting, and age-plus-gender counting. The functions assume age-sorted inputs and valid numeric query bounds. The saved figures and outputs support the documented findings. This completion status covers Exercise 1 code and documentation; it does not imply that Exercise 2 or a Canvas submission has been completed.
-
 ## Code evolution and design choices
 
 I inspected the XML structure and expanded the initial attribute-only parsing to preserve diagnoses and nested weight records. I selected 5-year age bins after classroom discussion, chose the gender pie chart, and proposed both the single-pass top-two algorithm and the use of a two-element list. I identified repeated ranking queries and explicit per-record ranks as reasons to prefer upfront sorting.
@@ -321,4 +317,4 @@ For 1h, I proposed filtering the sorted patient list once to create a male-only 
 
 ## AI assistance
 
-I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations. The notebook outputs record the work completed so far; Exercise 1 tasks 1a–1h are implemented; Exercise 2 is not presented as completed.
+I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations.
