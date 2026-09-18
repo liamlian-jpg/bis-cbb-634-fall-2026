@@ -224,3 +224,6 @@ __marimo__/
 
 # Course input: retrieve from Canvas as described in the exercise README
 /standard-exercises/population.json
+
+# Studio 2 course input: download from Canvas
+/dsaa-exercises/patients.xml
