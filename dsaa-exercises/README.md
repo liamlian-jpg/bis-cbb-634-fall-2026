@@ -17,6 +17,20 @@ jupyter notebook studio-02-xml.ipynb
 
 Restart the kernel and run the cells in order. The current notebook uses an absolute local path in `file_path`; change that variable to the location of your downloaded XML before running on another machine.
 
+## Reproducible validation
+
+Run [validation.py](validation.py) to reproduce the documented checks and save the actual output:
+
+```bash
+python validation.py --output validation-output.txt
+```
+
+The script finds the notebook and `patients.xml` beside itself. For an input elsewhere, use `python validation.py --data /path/to/patients.xml --output validation-output.txt`. It requires the same NumPy, pandas, and matplotlib environment as the notebook.
+
+It executes the trusted local notebook's code cells in order and tests its actual functions, without copying the search algorithms. In memory only, it replaces the machine-specific `file_path` assignment with the selected input path. Notebook stdout and table displays are suppressed and plots run with a noninteractive backend; notebook files and saved outputs are not modified.
+
+The [saved run transcript](validation-output.txt) contains aggregate results and actual and expected values for each check, without patient names or record-level measurements, dependency versions, and SHA-256 values for the notebook and XML. The current run passed **37 checks** after executing **10 code cells**. It covers data counts, duplicate ages, sorting versus linear top-two results, exact-age boundaries, threshold counts, all eight 1g edge cases, and the seven full-data plus three synthetic 1h checks described below. A failed check reports the error and returns a nonzero exit code. These checks verify results; complexity remains justified analytically in the task sections.
+
 ## 1a — Parse XML and analyze age distribution
 
 I parsed the XML with Python's standard-library `xml.etree.ElementTree`. The root is `patientdata`; `generated` and `institution` describe the file, while `patients` contains individual `patient` elements. Each patient stores `age`, `gender`, and `name` as attributes. Attribute order does not affect parsing.
@@ -173,6 +187,8 @@ Each boundary search takes O(log n), and the searches run sequentially: O(log n)
 
 ### Validation
 
+Reproduce these checks with [validation.py](validation.py); see the [actual run output](validation-output.txt).
+
 The seven notebook code cells through 1e ran in order. Separate checks of the same functions passed for duplicate matches, a target between existing ages, an empty list, a target above the maximum, and a target below the minimum. These checks validate 1e; they do not implement the later range-query tasks.
 
 ## 1f — Count patients at or above the target age
@@ -227,6 +243,8 @@ Patients aged 40 to under 50: 42525
 Each binary search halves the remaining interval at every iteration and uses O(log n) time. Two sequential searches plus one subtraction still take **O(log n)** time, with **O(1)** extra space. These costs assume the age sorting from 1c is already complete; no sorting or full scan occurs inside this function. Equal or reversed bounds return in O(1).
 
 ### Validation
+
+Reproduce these checks with [validation.py](validation.py); see the [actual run output](validation-output.txt).
 
 The nine notebook code cells through 1g executed in order. An independent full scan confirmed the real-data count of **42,525** for `[40, 50)`. The following separate test cases also passed using the notebook's function. Synthetic sorted ages make endpoint inclusion and duplicates explicit; these checks are validation, not extra steps in the query algorithm.
 
@@ -296,6 +314,8 @@ The original age sort in 1c costs O(n log n). Building the male index afterward 
 Each query performs two boundary searches on the full list and two on the male list. Its cost is **O(log n + log m)**, hence **O(log n)** because m <= n, with O(1) extra query space. An empty male index returns zero immediately through the same range-count logic. Filtering is outside the query function and is not repeated per query. Both sorted lists must be rebuilt or maintained if the underlying ages or gender records change.
 
 ### Validation
+
+Reproduce these checks with [validation.py](validation.py); see the [actual run output](validation-output.txt).
 
 All ten notebook code cells executed in order. For the full dataset, the returned pair was checked against independent full scans for `[40, 50)`, `[41.5, 50)`, `[0, 100)`, `[-10, 0)`, `[100, 110)`, `[50, 50)`, and reversed bounds `[50, 40)`. All seven checks passed. The scans were validation only, not part of the query implementation.
 
