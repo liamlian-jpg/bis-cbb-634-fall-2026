@@ -59,11 +59,44 @@ I chose a pie chart to emphasize each category's share of the total. Female and 
 
 ## 1c — Age sorting and top-K retrieval
 
+```python
+# Convert the DataFrame into a list of patient records
+patients = df.to_dict(orient="records")
+
+# Sort records by age in ascending order
+sorted_patients = sorted(patients, key=lambda patient: patient["age"])
+
+# The last record contains the oldest patient
+oldest_patient = sorted_patients[-1]
+
+print("Oldest patient:")
+print("Name:", oldest_patient["name"])
+print("Age:", oldest_patient["age"])
+print("Gender:", oldest_patient["gender"])
+
+display(pd.DataFrame(sorted_patients[-5:]))
+```
+
 I converted the DataFrame into a list of patient dictionaries using `df.to_dict(orient="records")`, then sorted it in ascending age order using `sorted(..., key=lambda patient: patient["age"])`. The resulting `sorted_patients` list preserves each patient's fields. The final element, `sorted_patients[-1]`, is the oldest patient; the notebook also displays the five oldest records.
 
 The oldest patient is **Monica Caponera**, age **84.99855742449432**, gender **female**. Sorting takes O(n log n) time in the general case; retrieving the final element afterward takes O(1).
 
 ## 1d — Single-pass second-oldest retrieval
+
+```python
+top_two = [None, None]
+
+for i in range(len(patients)):
+    current = patients[i]
+
+    if top_two[0] is None or current["age"] > top_two[0]["age"]:
+        top_two[1] = top_two[0]
+        top_two[0] = current
+    elif top_two[1] is None or current["age"] > top_two[1]["age"]:
+        top_two[1] = current
+
+display(pd.DataFrame(top_two, index=["Oldest", "Second oldest"]))
+```
 
 I proposed scanning the original, unsorted patient list once while maintaining the oldest and second-oldest records. I store them in a two-element list: `top_two[0]` holds the oldest patient and `top_two[1]` holds the second oldest.
 
@@ -80,6 +113,46 @@ A single-pass approach is preferable when only the second-oldest patient is need
 Looking up an individual by name to find their rank is a different operation and would require a separate index for fast queries. If equal ages existed, assigning numeric ranks would also require an explicit tie policy.
 
 ## 1e — Binary search for a target age
+
+```python
+def binary_search_left(patients, target_age):
+    left = 0
+    right = len(patients)
+
+    while left < right:
+        mid = (left + right) // 2
+
+        if patients[mid]["age"] < target_age:
+            left = mid + 1
+        else:
+            right = mid
+
+    return left
+
+def binary_search_right(patients, target_age):
+    left = 0
+    right = len(patients)
+
+    while left < right:
+        mid = (left + right) // 2
+
+        if patients[mid]["age"] <= target_age:
+            left = mid + 1
+        else:
+            right = mid
+
+    return left
+
+target_age = 41.5
+
+left_index = binary_search_left(sorted_patients, target_age)
+right_index = binary_search_right(sorted_patients, target_age)
+
+matching_patients = sorted_patients[left_index:right_index]
+
+print("Matching patients:", len(matching_patients))
+display(pd.DataFrame(matching_patients))
+```
 
 I use the ascending `sorted_patients` list from 1c rather than constructing a binary search tree. Two reusable functions, `binary_search_left(patients, target_age)` and `binary_search_right(patients, target_age)`, accept the sorted records and target age as arguments. Changing the target requires only a new argument, not rewriting the search logic.
 
@@ -126,6 +199,21 @@ Validation: the notebook code through 1f executed in order, and an independent f
 
 ## 1g — Age range queries
 
+```python
+def count_patients_in_range(patients, low_age, high_age):
+    if low_age >= high_age:
+        return 0
+
+    low_index = binary_search_left(patients, low_age)
+    high_index = binary_search_left(patients, high_age)
+
+    return high_index - low_index
+
+
+count = count_patients_in_range(sorted_patients, 40, 50)
+print("Patients aged 40 to under 50:", count)
+```
+
 `count_patients_in_range(patients, low_age, high_age)` reuses the left-boundary function from 1e on the ascending patient list. It returns the number of records satisfying **low_age <= age < high_age**. It returns zero immediately when `low_age >= high_age`.
 
 For a nonempty interval, the first search finds the first age greater than or equal to `low_age`. The second finds the first age greater than or equal to `high_age`. The difference `high_index - low_index` therefore includes the lower endpoint and excludes the upper endpoint, including when either endpoint has duplicate ages. No matching-record slice is created.
@@ -154,6 +242,40 @@ The nine notebook code cells through 1g executed in order. An independent full s
 | Empty input | `[]` | `[40, 50)` | 0 |
 
 ## 1h — Age and gender range queries
+
+```python
+male_sorted_patients = [
+    patient
+    for patient in sorted_patients
+    if patient["gender"] == "male"
+]
+
+def count_patients_by_age_and_gender(
+    sorted_patients, male_sorted_patients, low_age, high_age
+):
+    total_count = count_patients_in_range(
+        sorted_patients, low_age, high_age
+    )
+    male_count = count_patients_in_range(
+        male_sorted_patients, low_age, high_age
+    )
+
+    return total_count, male_count
+
+low_age = 40
+high_age = 50
+
+total_count, male_count = count_patients_by_age_and_gender(
+    sorted_patients,
+    male_sorted_patients,
+    low_age,
+    high_age
+)
+
+print(f"Age range: [{low_age}, {high_age})")
+print("Total patients:", total_count)
+print("Male patients:", male_count)
+```
 
 I build `male_sorted_patients` once by filtering the already sorted list for records whose `gender` attribute equals `"male"`. Filtering preserves the age order, so no second sort is necessary. This creates a secondary age index containing references to the male patient records.
 
