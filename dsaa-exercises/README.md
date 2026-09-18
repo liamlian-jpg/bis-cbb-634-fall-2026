@@ -7,7 +7,7 @@
 
 ## Code and progress
 
-[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1g. Task 1h and Exercise 2 are not completed in this update.
+[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1h. Exercise 1 is complete; Exercise 2 is not completed in this update.
 
 To reproduce, download `patients.xml` from the authorized [Canvas data file](https://yale.instructure.com/courses/121398/files/13049637) and place it next to the notebook. The XML input remains local and is excluded from Git. In an environment with NumPy, pandas, matplotlib, and Jupyter installed, run from this folder:
 
@@ -140,7 +140,7 @@ Each binary search halves the remaining interval at every iteration and uses O(l
 
 ### Validation
 
-All nine notebook code cells executed in order. An independent full scan confirmed the real-data count of **42,525** for `[40, 50)`. The following separate test cases also passed using the notebook's function. Synthetic sorted ages make endpoint inclusion and duplicates explicit; these checks are validation, not extra steps in the query algorithm.
+The nine notebook code cells through 1g executed in order. An independent full scan confirmed the real-data count of **42,525** for `[40, 50)`. The following separate test cases also passed using the notebook's function. Synthetic sorted ages make endpoint inclusion and duplicates explicit; these checks are validation, not extra steps in the query algorithm.
 
 | Case | Sorted ages | Query interval | Expected and observed count |
 | --- | --- | --- | ---: |
@@ -153,12 +153,50 @@ All nine notebook code cells executed in order. An independent full scan confirm
 | Reversed bounds | `[40, 45, 50]` | `[50, 40)` | 0 |
 | Empty input | `[]` | `[40, 50)` | 0 |
 
+## 1h — Age and gender range queries
+
+I build `male_sorted_patients` once by filtering the already sorted list for records whose `gender` attribute equals `"male"`. Filtering preserves the age order, so no second sort is necessary. This creates a secondary age index containing references to the male patient records.
+
+`count_patients_by_age_and_gender(sorted_patients, male_sorted_patients, low_age, high_age)` calls the 1g function on each list and returns `(total_count, male_count)`. Both counts use the interval `low_age <= age < high_age`. The total includes all recorded gender categories, including `unknown`; the male count includes only `male`.
+
+The saved example output is:
+
+```text
+Age range: [40, 50)
+Total patients: 42525
+Male patients: 20873
+```
+
+### Setup and query complexity
+
+The original age sort in 1c costs O(n log n). Building the male index afterward costs **O(n) time and O(m) extra space**, where m = 158,992 is the number of male patients. The new list contains record references rather than deep copies.
+
+Each query performs two boundary searches on the full list and two on the male list. Its cost is **O(log n + log m)**, hence **O(log n)** because m <= n, with O(1) extra query space. An empty male index returns zero immediately through the same range-count logic. Filtering is outside the query function and is not repeated per query. Both sorted lists must be rebuilt or maintained if the underlying ages or gender records change.
+
+### Validation
+
+All ten notebook code cells executed in order. For the full dataset, the returned pair was checked against independent full scans for `[40, 50)`, `[41.5, 50)`, `[0, 100)`, `[-10, 0)`, `[100, 110)`, `[50, 50)`, and reversed bounds `[50, 40)`. All seven checks passed. The scans were validation only, not part of the query implementation.
+
+Additional synthetic checks passed:
+
+| Case | Sorted (age, gender) records | Interval | Expected and observed (total, male) |
+| --- | --- | --- | --- |
+| Duplicate endpoints | (40, male), (40, female), (45, unknown), (50, male) | `[40, 50)` | (3, 1) |
+| No male records | (40, female), (45, unknown) | `[40, 50)` | (2, 0) |
+| Empty input | No records | `[40, 50)` | (0, 0) |
+
+## Exercise 1 completion
+
+Tasks 1a–1h are implemented in the notebook and documented here: XML parsing, age and gender visualizations, duplicate analysis, age sorting, single-pass top-two retrieval, exact-age searches, threshold counting, age-range counting, and age-plus-gender counting. The functions assume age-sorted inputs and valid numeric query bounds. The saved figures and outputs support the documented findings. This completion status covers Exercise 1 code and documentation; it does not imply that Exercise 2 or a Canvas submission has been completed.
+
 ## Code evolution and design choices
 
 I inspected the XML structure and expanded the initial attribute-only parsing to preserve diagnoses and nested weight records. I selected 5-year age bins after classroom discussion, chose the gender pie chart, and proposed both the single-pass top-two algorithm and the use of a two-element list. I identified repeated ranking queries and explicit per-record ranks as reasons to prefer upfront sorting.
 
 For task 1g, I initially considered using a left-boundary search for the lower limit and a right-boundary search for the upper limit. I then recognized that the required interval is `low_age <= age < high_age`, so both limits need a left-boundary search. Using a right-boundary search for the upper limit would include patients exactly at `high_age`, which would instead implement `low_age <= age <= high_age`. This helped me connect the choice of boundary function to whether each endpoint is included. I reused the functions from 1e rather than writing a separate search algorithm.
 
+For 1h, I proposed filtering the sorted patient list once to create a male-only sorted list and then reusing the 1g function. I also considered changing 1g to return a DataFrame of all matching records and counting genders afterward. That would be convenient for inspecting records, but materializing and scanning k matches adds O(k) work, making a query O(log n + k) instead of the required O(log n). I therefore kept the count-only function and the precomputed male index. This separates the one-time O(n) filtering cost from repeated logarithmic-time queries.
+
 ## AI assistance
 
-I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations. The notebook outputs record the work completed so far; task 1h and Exercise 2 are not presented as implemented.
+I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations. The notebook outputs record the work completed so far; Exercise 1 tasks 1a–1h are implemented; Exercise 2 is not presented as completed.

@@ -13,4 +13,4 @@
 
 Studio 1 exercises share the `standard-exercises/` folder. Their notebooks, README, figures, helper scripts, and required local data live directly in that folder, without additional subfolders. The structure can be revised if the portfolio grows.
 
-Studio 2 work is kept in `dsaa-exercises/`. Exercise 1 tasks 1a–1g are documented there; the course XML input remains local.
+Studio 2 work is kept in `dsaa-exercises/`. Exercise 1 tasks 1a–1h are complete and documented there; the course XML input remains local.
