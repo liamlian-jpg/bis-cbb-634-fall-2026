@@ -7,7 +7,7 @@
 
 ## Code and progress
 
-[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1e. Tasks 1f–1h and Exercise 2 are not completed in this update.
+[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1f. Tasks 1g–1h and Exercise 2 are not completed in this update.
 
 To reproduce, download `patients.xml` from the authorized [Canvas data file](https://yale.instructure.com/courses/121398/files/13049637) and place it next to the notebook. The XML input remains local and is excluded from Git. In an environment with NumPy, pandas, matplotlib, and Jupyter installed, run from this folder:
 
@@ -102,8 +102,30 @@ Each boundary search takes O(log n), and the searches run sequentially: O(log n)
 
 All seven notebook code cells ran in order. Separate checks of the same functions passed for duplicate matches, a target between existing ages, an empty list, a target above the maximum, and a target below the minimum. These checks validate 1e; they do not implement the later range-query tasks.
 
+## 1f — Count patients at or above the target age
+
+I reuse `left_index` from 1e, the first position whose age is greater than or equal to `target_age`. Because the list is sorted and indices start at zero, `left_index` equals the number of patients younger than the target. Subtracting this index from the total list length counts all remaining patients, including exact matches:
+
+```python
+count_at_least_target = len(sorted_patients) - left_index
+
+print(f"Patients aged at least {target_age}: {count_at_least_target}")
+```
+
+For a target age of **41.5**, the total is **324,357** and the left boundary is **173,886**, giving **150,471 patients aged at least 41.5**. The saved output is:
+
+```text
+Patients aged at least 41.5: 150471
+```
+
+This calculation takes **O(1)** time and extra space once the boundary is available: Python list length and integer subtraction do not require traversal or slicing. Finding the left boundary initially takes O(log n) on the already sorted list. Task 1f does not need the right boundary or the matching-record slice used in 1e. If the target changes, the left boundary must first be recomputed for that target.
+
+The same formula handles a target below all ages (`left_index = 0`, count = n), above all ages (`left_index = n`, count = 0), or absent between existing ages. If the target age is duplicated, the left boundary includes every matching patient in the count.
+
+Validation: the notebook code through 1f executed in order, and an independent full scan confirmed the count of 150,471. The full scan was a verification step, not part of the O(1) calculation.
+
 ## Development and AI assistance
 
 I inspected the XML structure and expanded the initial attribute-only parsing to preserve diagnoses and nested weight records. I selected 5-year age bins after classroom discussion, chose the gender pie chart, and proposed both the single-pass top-two algorithm and the use of a two-element list. I identified repeated ranking queries and explicit per-record ranks as reasons to prefer upfront sorting.
 
-I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations. The notebook outputs record the work completed so far; tasks 1f–1h are not presented as implemented.
+I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations. The notebook outputs record the work completed so far; tasks 1g–1h are not presented as implemented.
