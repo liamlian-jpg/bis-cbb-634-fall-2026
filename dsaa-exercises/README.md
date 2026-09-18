@@ -7,7 +7,7 @@
 
 ## Code and progress
 
-[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1f. Tasks 1g–1h and Exercise 2 are not completed in this update.
+[Exercise 1 notebook](studio-02-xml.ipynb) contains the code and saved outputs for tasks 1a–1g. Task 1h and Exercise 2 are not completed in this update.
 
 To reproduce, download `patients.xml` from the authorized [Canvas data file](https://yale.instructure.com/courses/121398/files/13049637) and place it next to the notebook. The XML input remains local and is excluded from Git. In an environment with NumPy, pandas, matplotlib, and Jupyter installed, run from this folder:
 
@@ -71,7 +71,7 @@ For each record, if its age exceeds the current maximum, I first move the previo
 
 The algorithm uses **O(n) time and O(1) extra space**, beyond the existing patient list: it makes one pass and maintains only two record references. It does not use the sorted list from 1c to compute the result. Equal ages can occupy both positions when they belong to different patient records; this retrieves the second-oldest patient, not the second distinct age.
 
-The second-oldest patient is **Raymond Leigh**, age **84.9982928781625**, gender **male**. Executing all seven notebook cells in order reproduced the documented counts, and the single-pass top two matched the two oldest records from the sorted list.
+The second-oldest patient is **Raymond Leigh**, age **84.9982928781625**, gender **male**. Executing the notebook cells through 1d in order reproduced the documented counts, and the single-pass top two matched the two oldest records from the sorted list.
 
 ### Conceptual reflection
 
@@ -100,7 +100,7 @@ Each boundary search takes O(log n), and the searches run sequentially: O(log n)
 
 ### Validation
 
-All seven notebook code cells ran in order. Separate checks of the same functions passed for duplicate matches, a target between existing ages, an empty list, a target above the maximum, and a target below the minimum. These checks validate 1e; they do not implement the later range-query tasks.
+The seven notebook code cells through 1e ran in order. Separate checks of the same functions passed for duplicate matches, a target between existing ages, an empty list, a target above the maximum, and a target below the minimum. These checks validate 1e; they do not implement the later range-query tasks.
 
 ## 1f — Count patients at or above the target age
 
@@ -124,8 +124,41 @@ The same formula handles a target below all ages (`left_index = 0`, count = n), 
 
 Validation: the notebook code through 1f executed in order, and an independent full scan confirmed the count of 150,471. The full scan was a verification step, not part of the O(1) calculation.
 
-## Development and AI assistance
+## 1g — Age range queries
+
+`count_patients_in_range(patients, low_age, high_age)` reuses the left-boundary function from 1e on the ascending patient list. It returns the number of records satisfying **low_age <= age < high_age**. It returns zero immediately when `low_age >= high_age`.
+
+For a nonempty interval, the first search finds the first age greater than or equal to `low_age`. The second finds the first age greater than or equal to `high_age`. The difference `high_index - low_index` therefore includes the lower endpoint and excludes the upper endpoint, including when either endpoint has duplicate ages. No matching-record slice is created.
+
+The notebook query `[40, 50)` prints:
+
+```text
+Patients aged 40 to under 50: 42525
+```
+
+Each binary search halves the remaining interval at every iteration and uses O(log n) time. Two sequential searches plus one subtraction still take **O(log n)** time, with **O(1)** extra space. These costs assume the age sorting from 1c is already complete; no sorting or full scan occurs inside this function. Equal or reversed bounds return in O(1).
+
+### Validation
+
+All nine notebook code cells executed in order. An independent full scan confirmed the real-data count of **42,525** for `[40, 50)`. The following separate test cases also passed using the notebook's function. Synthetic sorted ages make endpoint inclusion and duplicates explicit; these checks are validation, not extra steps in the query algorithm.
+
+| Case | Sorted ages | Query interval | Expected and observed count |
+| --- | --- | --- | ---: |
+| Exact endpoints and duplicates | `[40, 40, 45, 50, 50]` | `[40, 50)` | 3 |
+| Between existing ages | `[40, 45, 50]` | `[41, 49)` | 1 |
+| Bounds beyond data | `[40, 45, 50]` | `[0, 100)` | 3 |
+| Entirely below data | `[40, 45, 50]` | `[0, 30)` | 0 |
+| Entirely above data | `[40, 45, 50]` | `[60, 70)` | 0 |
+| Equal bounds | `[40, 45, 50]` | `[45, 45)` | 0 |
+| Reversed bounds | `[40, 45, 50]` | `[50, 40)` | 0 |
+| Empty input | `[]` | `[40, 50)` | 0 |
+
+## Code evolution and design choices
 
 I inspected the XML structure and expanded the initial attribute-only parsing to preserve diagnoses and nested weight records. I selected 5-year age bins after classroom discussion, chose the gender pie chart, and proposed both the single-pass top-two algorithm and the use of a two-element list. I identified repeated ranking queries and explicit per-record ranks as reasons to prefer upfront sorting.
 
-I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations. The notebook outputs record the work completed so far; tasks 1g–1h are not presented as implemented.
+For task 1g, I initially considered using a left-boundary search for the lower limit and a right-boundary search for the upper limit. I then recognized that the required interval is `low_age <= age < high_age`, so both limits need a left-boundary search. Using a right-boundary search for the upper limit would include patients exactly at `high_age`, which would instead implement `low_age <= age <= high_age`. This helped me connect the choice of boundary function to whether each endpoint is included. I reused the functions from 1e rather than writing a separate search algorithm.
+
+## AI assistance
+
+I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations. The notebook outputs record the work completed so far; task 1h and Exercise 2 are not presented as implemented.
