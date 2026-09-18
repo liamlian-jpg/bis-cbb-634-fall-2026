@@ -1,58 +1,29 @@
-Exercise 1 validation
-Python: 3.13.5
-NumPy: 2.1.3 pandas: 2.2.3 matplotlib: 3.10.0
-Notebook SHA-256: 2c4272f7c67431674b6b640478671bd8ea9168c4f561253970978038b4d7bd1e
-XML SHA-256: 064e5735e4e7bab92b9f08fafcea169a8da4ac84d19257d95d7e8614325d02d0
+1e - Binary search boundaries
+Case | Sorted ages | Target | Expected (left, right) | Actual | Result
+Duplicate target | [40, 41.5, 41.5, 43] | 41.5 | (1, 3) | (1, 3) | PASS
+Between existing ages | [40, 42] | 41.5 | (1, 1) | (1, 1) | PASS
+Empty input | [] | 41.5 | (0, 0) | (0, 0) | PASS
+Above all ages | [40, 42] | 50 | (2, 2) | (2, 2) | PASS
+Below all ages | [40, 42] | 20 | (0, 0) | (0, 0) | PASS
 
-Notebook execution (record-level output suppressed):
-Executed 10 code cells in order.
+1f - Threshold count
+Input: [40, 41.5, 41.5, 43]; target: 41.5; expected: 3; actual: 3
 
-Data and notebook results:
-PASS | 1a patient count | actual=324357 | expected=324357
-PASS | 1a missing ages | actual=0 | expected=0
-PASS | 1a repeated age values | actual=0 | expected=0
-PASS | 1b gender counts | actual={'female': 165293, 'male': 158992, 'unknown': 72} | expected={'female': 165293, 'male': 158992, 'unknown': 72}
-PASS | 1c ages sorted ascending | actual=True | expected=True
-PASS | 1c oldest equals full-scan maximum | actual=True | expected=True
-PASS | 1d linear top two equal sorted top two | actual=True | expected=True
-PASS | 1e exact match count and target | actual=True | expected=True
-PASS | 1e boundaries | actual=(173886, 173887) | expected=(173886, 173887)
-PASS | 1f threshold count | actual=150471 | expected=150471
-PASS | 1f full-scan comparison | actual=150471 | expected=150471
-PASS | 1g example count | actual=42525 | expected=42525
-PASS | 1h male index size | actual=158992 | expected=158992
-PASS | 1h example counts | actual=(42525, 20873) | expected=(42525, 20873)
+1g - Age range counts
+Case | Sorted ages | Query interval | Expected | Actual | Result
+Exact endpoints and duplicates | [40, 40, 45, 50, 50] | [40, 50) | 3 | 3 | PASS
+Between existing ages | [40, 45, 50] | [41, 49) | 1 | 1 | PASS
+Bounds beyond data | [40, 45, 50] | [0, 100) | 3 | 3 | PASS
+Entirely below data | [40, 45, 50] | [0, 30) | 0 | 0 | PASS
+Entirely above data | [40, 45, 50] | [60, 70) | 0 | 0 | PASS
+Equal bounds | [40, 45, 50] | [45, 45) | 0 | 0 | PASS
+Reversed bounds | [40, 45, 50] | [50, 40) | 0 | 0 | PASS
+Empty input | [] | [40, 50) | 0 | 0 | PASS
 
-1e boundary checks:
-PASS | ages=[40, 41.5, 41.5, 43], target=41.5 | actual=(1, 3) | expected=(1, 3)
-PASS | ages=[40, 42], target=41.5 | actual=(1, 1) | expected=(1, 1)
-PASS | ages=[], target=41.5 | actual=(0, 0) | expected=(0, 0)
-PASS | ages=[40, 42], target=50 | actual=(2, 2) | expected=(2, 2)
-PASS | ages=[40, 42], target=20 | actual=(0, 0) | expected=(0, 0)
+1h - Age and gender counts
+Case | Sorted (age, gender) records | Query interval | Expected (total, male) | Actual | Result
+Duplicate endpoints | [(40, 'male'), (40, 'female'), (45, 'unknown'), (50, 'male')] | [40, 50) | (3, 1) | (3, 1) | PASS
+No male records | [(40, 'female'), (45, 'unknown')] | [40, 50) | (2, 0) | (2, 0) | PASS
+Empty input | [] | [40, 50) | (0, 0) | (0, 0) | PASS
 
-1g range checks:
-PASS | ages=[40, 40, 45, 50, 50], interval=[40, 50) | actual=3 | expected=3
-PASS | ages=[40, 45, 50], interval=[41, 49) | actual=1 | expected=1
-PASS | ages=[40, 45, 50], interval=[0, 100) | actual=3 | expected=3
-PASS | ages=[40, 45, 50], interval=[0, 30) | actual=0 | expected=0
-PASS | ages=[40, 45, 50], interval=[60, 70) | actual=0 | expected=0
-PASS | ages=[40, 45, 50], interval=[45, 45) | actual=0 | expected=0
-PASS | ages=[40, 45, 50], interval=[50, 40) | actual=0 | expected=0
-PASS | ages=[], interval=[40, 50) | actual=0 | expected=0
-
-1h full-data comparisons with independent scans:
-PASS | interval=[40, 50) | actual=(42525, 20873) | expected=(42525, 20873)
-PASS | interval=[41.5, 50) | actual=(35962, 17610) | expected=(35962, 17610)
-PASS | interval=[0, 100) | actual=(324357, 158992) | expected=(324357, 158992)
-PASS | interval=[-10, 0) | actual=(0, 0) | expected=(0, 0)
-PASS | interval=[100, 110) | actual=(0, 0) | expected=(0, 0)
-PASS | interval=[50, 50) | actual=(0, 0) | expected=(0, 0)
-PASS | interval=[50, 40) | actual=(0, 0) | expected=(0, 0)
-
-1h synthetic checks:
-PASS | Duplicate endpoints | actual=(3, 1) | expected=(3, 1)
-PASS | No male records | actual=(2, 0) | expected=(2, 0)
-PASS | Empty input | actual=(0, 0) | expected=(0, 0)
-
-PASS: 37 checks; 10 notebook code cells executed.
-Timing complexity is justified in README; these checks verify results, not asymptotic runtime.
+All 17 synthetic test cases passed.
