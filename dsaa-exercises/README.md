@@ -19,17 +19,16 @@ Restart the kernel and run the cells in order. The current notebook uses an abso
 
 ## Reproducible validation
 
-Run [validation.py](validation.py) to reproduce the documented checks and save the actual output:
+[validation.py](validation.py) is a standalone script containing verbatim copies of the four search and counting functions from the exercise, followed by explicit synthetic test inputs. It does not read the notebook or patient XML and needs only Python's standard library.
 
 ```bash
-python validation.py --output validation-output.txt
+python validation.py
+python validation.py > validation-output.txt
 ```
 
-The script finds the notebook and `patients.xml` beside itself. For an input elsewhere, use `python validation.py --data /path/to/patients.xml --output validation-output.txt`. It requires the same NumPy, pandas, and matplotlib environment as the notebook.
+For each case it prints the input, target or interval, expected result, actual result, and pass/fail status. It reproduces all eight rows of the 1g validation table and all three synthetic cases in 1h, plus five 1e boundary cases and one 1f threshold case. The [saved output](validation-output.txt) records **17 passing cases**. A mismatch raises an error. Copies of the functions should be updated when the notebook algorithms change.
 
-It executes the trusted local notebook's code cells in order and tests its actual functions, without copying the search algorithms. In memory only, it replaces the machine-specific `file_path` assignment with the selected input path. Notebook stdout and table displays are suppressed and plots run with a noninteractive backend; notebook files and saved outputs are not modified.
-
-The [saved run transcript](validation-output.txt) contains aggregate results and actual and expected values for each check, without patient names or record-level measurements, dependency versions, and SHA-256 values for the notebook and XML. The current run passed **37 checks** after executing **10 code cells**. It covers data counts, duplicate ages, sorting versus linear top-two results, exact-age boundaries, threshold counts, all eight 1g edge cases, and the seven full-data plus three synthetic 1h checks described below. A failed check reports the error and returns a nonzero exit code. These checks verify results; complexity remains justified analytically in the task sections.
+The synthetic script checks algorithm behavior on small, visible examples. The real-data checks described below were performed separately during development; this script does not rerun them. Complexity is justified analytically, not inferred from these tests.
 
 ## 1a — Parse XML and analyze age distribution
 
@@ -187,7 +186,7 @@ Each boundary search takes O(log n), and the searches run sequentially: O(log n)
 
 ### Validation
 
-Reproduce these checks with [validation.py](validation.py); see the [actual run output](validation-output.txt).
+Reproduce the synthetic cases with [validation.py](validation.py); see the [actual run output](validation-output.txt). Real-data execution checks described here were performed separately during development.
 
 The seven notebook code cells through 1e ran in order. Separate checks of the same functions passed for duplicate matches, a target between existing ages, an empty list, a target above the maximum, and a target below the minimum. These checks validate 1e; they do not implement the later range-query tasks.
 
@@ -244,7 +243,7 @@ Each binary search halves the remaining interval at every iteration and uses O(l
 
 ### Validation
 
-Reproduce these checks with [validation.py](validation.py); see the [actual run output](validation-output.txt).
+Reproduce the synthetic cases with [validation.py](validation.py); see the [actual run output](validation-output.txt). Real-data execution checks described here were performed separately during development.
 
 The nine notebook code cells through 1g executed in order. An independent full scan confirmed the real-data count of **42,525** for `[40, 50)`. The following separate test cases also passed using the notebook's function. Synthetic sorted ages make endpoint inclusion and duplicates explicit; these checks are validation, not extra steps in the query algorithm.
 
@@ -315,7 +314,7 @@ Each query performs two boundary searches on the full list and two on the male l
 
 ### Validation
 
-Reproduce these checks with [validation.py](validation.py); see the [actual run output](validation-output.txt).
+Reproduce the synthetic cases with [validation.py](validation.py); see the [actual run output](validation-output.txt). Real-data execution checks described here were performed separately during development.
 
 All ten notebook code cells executed in order. For the full dataset, the returned pair was checked against independent full scans for `[40, 50)`, `[41.5, 50)`, `[0, 100)`, `[-10, 0)`, `[100, 110)`, `[50, 50)`, and reversed bounds `[50, 40)`. All seven checks passed. The scans were validation only, not part of the query implementation.
 
@@ -338,3 +337,254 @@ For 1h, I proposed filtering the sorted patient list once to create a male-only 
 ## AI assistance
 
 I used OpenAI Codex to help implement these choices, explain binary-search boundaries and complexity, and write this README. I retained responsibility for the substantive decisions and interpretations.
+
+## Exercise 2 — Algorithm Analysis and Performance Measurement
+
+### Code and reproduction
+
+[Exercise 2 notebook](studio-02-algorithm-analysis.ipynb) contains the supplied algorithms, data generators, the 2a output analysis, and the 2b benchmark. With NumPy and Jupyter installed, open the notebook, restart the kernel, and run all cells in order. No patient dataset is required.
+
+### 2a — Output analysis
+
+I used all three provided generators with `n = 8`. Each algorithm receives a copy of the same input, and I compare both outputs with Python's `sorted()` result. These are small functionality checks, not performance measurements.
+
+```python
+n = 8
+
+test_cases = [
+    ("data1", data1(n)),
+    ("data2", data2(n)),
+    ("data3", data3(n)),
+]
+
+for case_name, test_input in test_cases:
+    output1 = alg1(test_input.copy())
+    output2 = alg2(test_input.copy())
+    expected = sorted(test_input)
+
+    print(f"Case: {case_name}")
+    print("Input:   ", test_input)
+    print("alg1:    ", output1)
+    print("alg2:    ", output2)
+    print("Both correct:", output1 == expected and output2 == expected)
+    print("-" * 50)
+```
+
+#### Actual inputs and outputs
+
+```text
+Case: data1
+Input:    [31.0, 31.026, 31.07515666666667, 31.1456131764, 31.236317170692352, 31.346883543428103, 31.477492347868477, 31.628814213217787]
+alg1:     [31.0, 31.026, 31.07515666666667, 31.1456131764, 31.236317170692352, 31.346883543428103, 31.477492347868477, 31.628814213217787]
+alg2:     [31.0, 31.026, 31.07515666666667, 31.1456131764, 31.236317170692352, 31.346883543428103, 31.477492347868477, 31.628814213217787]
+Both correct: True
+--------------------------------------------------
+Case: data2
+Input:    [0, 1, 2, 3, 4, 5, 6, 7]
+alg1:     [0, 1, 2, 3, 4, 5, 6, 7]
+alg2:     [0, 1, 2, 3, 4, 5, 6, 7]
+Both correct: True
+--------------------------------------------------
+Case: data3
+Input:    [8, 7, 6, 5, 4, 3, 2, 1]
+alg1:     [1, 2, 3, 4, 5, 6, 7, 8]
+alg2:     [1, 2, 3, 4, 5, 6, 7, 8]
+Both correct: True
+--------------------------------------------------
+```
+
+Both functions return ascending sequences for all three inputs. The first eight default `data1` values happen to be increasing, so their order remains unchanged; this short sample does not establish that longer outputs are always sorted. `data2` is already ascending. `data3` is descending and is reversed into ascending order by both algorithms. All three comparisons with `sorted()` return `True`.
+
+#### Conceptual mechanics
+
+**alg1:** The function repeatedly scans adjacent pairs and swaps them when the right value is smaller than the left. A large value can move right through successive swaps during one scan. If any swap occurs, `changes` becomes `True` and another scan follows. A complete scan with no swaps establishes that the list is ordered and ends the loop. This is bubble sort with an early-exit check. Already ordered input needs one scan, O(n); reverse-ordered input needs O(n) scans of O(n) comparisons, giving O(n²).
+
+**alg2:** The function recursively divides the list into two parts until each part contains at most one element. Those parts are already sorted. It then merges sorted halves by comparing their current first remaining elements, appending the smaller one, and advancing that side's iterator. `alg2(...)` performs the sorting; `iter(...)` only allows sequential access to the sorted result. When `next()` raises `StopIteration`, that side is exhausted, so the function returns the accumulated result plus the other side's current element and remaining iterator values. The current element must be included separately because it has already been removed from the iterator. This is merge sort.
+
+For n = 4, the recursion has 1 + 2 + 4 = 7 calls, but a call's cost depends on the size of its list. Combining two sorted halves of total length m takes O(m) work. Each merge level processes O(n) elements in total, and there are O(log n) levels, giving O(n log n). List slicing also costs O(n) per level in total and does not change this order. Execution processes the left subtree, then the right subtree, before merging; it does not execute all tree nodes simultaneously.
+
+### 2b — Benchmarking and log-log scaling
+
+#### Method
+
+I benchmarked both algorithms on `data1`, `data2`, and `data3` at eight logarithmically spaced input sizes: **100, 153, 235, 360, 553, 848, 1301, and 1995**. For each input, I warmed up both algorithms, measured five runs with `time.perf_counter()`, and reported the median. The execution order alternates between repeats to reduce order effects.
+
+Data generation, the external input copy, the reference `sorted()` result, and correctness checks are outside the timed block. The timed call includes the algorithm's own work, including copying inside `alg1` and slicing inside `alg2`. Both algorithms receive the same values for a given generator and n.
+
+#### Benchmark code
+
+```python
+import time
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Start with moderate sizes because alg1 can be slow.
+sizes = np.unique(np.logspace(2, 3.3, num=8).astype(int))
+repeats = 5
+
+generators = {
+    "data1": data1,
+    "data2": data2,
+    "data3": data3,
+}
+
+algorithms = {
+    "alg1": alg1,
+    "alg2": alg2,
+}
+
+records = []
+
+for data_name, generator in generators.items():
+    for n in sizes:
+        # Generate the same input for both algorithms outside timing.
+        test_data = generator(int(n))
+        expected = sorted(test_data)
+
+        timings = {name: [] for name in algorithms}
+
+        # Warm up each algorithm outside timing.
+        for algorithm in algorithms.values():
+            assert algorithm(test_data.copy()) == expected
+
+        for repeat in range(repeats):
+            # Alternate execution order to reduce order effects.
+            order = list(algorithms.items())
+            if repeat % 2 == 1:
+                order.reverse()
+
+            for algorithm_name, algorithm in order:
+                input_copy = test_data.copy()
+
+                start = time.perf_counter()
+                result = algorithm(input_copy)
+                elapsed = time.perf_counter() - start
+
+                # Check correctness outside timing.
+                assert result == expected
+
+                timings[algorithm_name].append(elapsed)
+
+        for algorithm_name, measured_times in timings.items():
+            records.append({
+                "dataset": data_name,
+                "n": int(n),
+                "algorithm": algorithm_name,
+                "median_seconds": float(np.median(measured_times)),
+            })
+
+results = pd.DataFrame(records)
+
+display(
+    results.pivot(
+        index=["dataset", "n"],
+        columns="algorithm",
+        values="median_seconds",
+    )
+)
+
+# Plot one panel for each data generator.
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+for ax, data_name in zip(axes, generators):
+    for algorithm_name in algorithms:
+        subset = results[
+            (results["dataset"] == data_name)
+            & (results["algorithm"] == algorithm_name)
+        ].sort_values("n")
+
+        ax.loglog(
+            subset["n"],
+            subset["median_seconds"],
+            marker="o",
+            label=algorithm_name,
+        )
+
+    ax.set_title(data_name)
+    ax.set_xlabel("Input size (n)")
+    ax.set_ylabel("Median execution time (seconds)")
+    ax.grid(True, which="both", alpha=0.3)
+    ax.legend()
+
+fig.suptitle("Algorithm Runtime Comparison")
+plt.tight_layout()
+plt.show()
+
+# Estimate the slope over the measured range.
+slope_records = []
+
+for data_name in generators:
+    for algorithm_name in algorithms:
+        subset = results[
+            (results["dataset"] == data_name)
+            & (results["algorithm"] == algorithm_name)
+        ].sort_values("n")
+
+        slope, intercept = np.polyfit(
+            np.log10(subset["n"]),
+            np.log10(subset["median_seconds"]),
+            deg=1,
+        )
+
+        slope_records.append({
+            "dataset": data_name,
+            "algorithm": algorithm_name,
+            "estimated_slope": slope,
+        })
+
+slopes = pd.DataFrame(slope_records)
+display(slopes)
+```
+
+#### Saved results
+
+![Runtime comparison on log-log axes](algorithm-runtime-comparison.png)
+
+The [saved timing and slope tables](benchmark-results.txt) are extracted from the notebook's original saved run. Timings will vary between runs and machines.
+
+| Dataset | alg1 estimated slope | alg2 estimated slope |
+| --- | ---: | ---: |
+| data1 | 2.079412 | 1.062627 |
+| data2 | 1.013919 | 1.050273 |
+| data3 | 2.069037 | 1.041350 |
+
+#### Interpreting the log-log plot
+
+Both axes use logarithmic scales: equal distances correspond to equal ratios, not equal absolute increases. A straight line on these axes suggests a power-law relationship over the measured range, not exponential growth. If T(n) = C n^p, then log T(n) = log C + p log n, so the slope estimates p. A slope near 1 means that a tenfold increase in n corresponds to roughly tenfold time; a slope near 2 means roughly a hundredfold time.
+
+At the same n, a lower curve indicates faster execution; a steeper curve indicates faster growth in time as n increases. The three panels use different vertical ranges, so cross-panel comparisons require reading the tick values.
+
+For data1 and data3, alg1's slopes are near 2, consistent with its repeated-scan quadratic behavior. For already sorted data2, its slope is near 1, consistent with exiting after one scan. alg2's slopes are near 1 in this finite experiment. They do not establish O(n) complexity: its divide-and-merge structure remains O(n log n), and the logarithmic factor grows slowly. Runtime overhead, input sizes, and implementation details affect fitted slopes. These empirical results support interpretation alongside the code; fitted slopes alone do not prove Big-O bounds.
+
+### 2c — Evaluation and data-dependent behavior
+
+#### Why neither algorithm is always faster
+
+The measured performance depends on the input order and the work each algorithm performs. For already sorted `data2`, alg1 finishes after one scan with no swaps. This is O(n), consistent with the fitted slope of 1.013919, and it is faster than alg2 in this experiment.
+
+For `data1` and reverse-sorted `data3`, alg1 requires repeated scans and swaps. Their fitted slopes, 2.079412 and 2.069037, are close to quadratic growth. As n increases, the performance gap in favor of alg2 becomes larger. The irregular ordering in data1 affects how many passes are needed; descending data3 requires many passes because small elements can move left only one position per pass in this implementation.
+
+alg2 divides and merges the input regardless of whether it is initially sorted. Its O(n log n) structure is relatively insensitive to input order, although the precise comparison counts and measured times can still vary. It does not exploit already sorted input by stopping after a single scan, which explains why alg1 wins on data2. These observations connect the empirical plots to the underlying mechanics rather than assuming that one algorithm must always be faster.
+
+#### My choice for real-world inputs
+
+Between these two algorithms, I would choose **alg2** when the input order is unknown or varies. Its performance is less sensitive to input order, making runtime growth more predictable as the dataset increases in size. This means a more predictable scaling trend, not identical elapsed times on every run.
+
+If the input is known to be already sorted, alg1 can be preferable because its early-exit condition terminates after one scan, as demonstrated by data2. My preference for alg2 applies to general inputs with uncertain ordering, not to every possible data condition.
+
+### Exercise 2 — Code evolution and design choices
+
+I traced alg1's swap flag and recognized that any swap triggers another full scan, leading to quadratic worst-case behavior. For alg2, I worked through splitting, recursion, iterator advancement, and exhaustion handling. I drew the decomposition of `[4, 1, 3, 2]`, followed by merging into `[1, 4]`, `[2, 3]`, and finally `[1, 2, 3, 4]`. I distinguished the geometric growth in function-call counts from the work performed per call, which explains the O(n log n) total.
+
+For output analysis, I chose small inputs from the supplied generators to connect the functionality checks with the later benchmarking tasks. The generator definitions were added to the saved notebook so it can run after a kernel restart without relying on previous session state.
+
+I initially interpreted the log-log plot as potentially indicating exponential growth. I then distinguished the logarithmic axis scale from the runtime relationship: the slope estimates a power exponent over the tested range. I connected the near-2 slopes of alg1 on data1 and data3, and its near-1 slope on sorted data2, with the number of scans required.
+
+For 2c, I connected the different execution times to input order and chose alg2 for inputs with unknown or changing order because its runtime growth is more predictable. I retained the already-sorted case as an exception where alg1 benefits from its early exit.
+
+### Exercise 2 — Validation and AI assistance
+
+The algorithm definitions, restored generator definitions, and 2a test cell executed in order in a fresh Python namespace. Both algorithms matched `sorted()` for each of the three generated inputs; the output above is captured from that execution. The 2b tables and figure were verified against saved notebook outputs; the benchmark was not rerun for this documentation update, preserving the measured results discussed in class. Its timed runs include correctness assertions.
+
+I used OpenAI Codex to help explain the algorithms, prepare the output-analysis code, verify execution, and document my reasoning. My discussion and hand-drawn recursion trace informed the conceptual explanation.
