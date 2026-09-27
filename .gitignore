@@ -227,3 +227,7 @@ __marimo__/
 
 # Studio 2 course input: download from Canvas
 /dsaa-exercises/patients.xml
+
+# Studio 3 course inputs: obtain from the assignment
+/big-data-exercises/words.txt
+/big-data-exercises/typos.json
