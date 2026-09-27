@@ -16,6 +16,44 @@ This is a form of data leakage because membership information itself reveals som
 
 I loaded `words.txt` into three Bloom filters, each with `size=10**7` bits (approximately 1.25 MB of bit storage). The filters use the first hash function, the first two, and all three, respectively. Each filter uses one shared bit array and the same input word list. I tested the correction function with `"floeer"`.
 
+The following code uses the supplied `BloomFilter` class and the `words` list loaded from `words.txt`:
+
+```python
+bf1 = BloomFilter(size=10**7, hash_count=1)
+bf2 = BloomFilter(size=10**7, hash_count=2)
+bf3 = BloomFilter(size=10**7, hash_count=3)
+
+for word in words:
+    bf1.add(word)
+    bf2.add(word)
+    bf3.add(word)
+
+import string
+
+def suggest_corrections(
+    typed_word: str,
+    bloom_filter: BloomFilter
+) -> list[str]:
+    word = typed_word.lower()
+    suggestions = []
+
+    for i in range(len(word)):
+        for letter in string.ascii_lowercase:
+            if letter == word[i]:
+                continue
+
+            candidate = word[:i] + letter + word[i + 1:]
+
+            if candidate in bloom_filter:
+                suggestions.append(candidate)
+
+    return suggestions
+
+print(suggest_corrections("floeer", bf1))
+print(suggest_corrections("floeer", bf2))
+print(suggest_corrections("floeer", bf3))
+```
+
 The verified notebook outputs are:
 
 **First hash function — SHA-256:**
@@ -35,8 +73,6 @@ The verified notebook outputs are:
 ```python
 ['floter', 'flower']
 ```
-
-These results match the exercise examples. Checking the suggestions against the supplied word list confirms that `floter` and `flower` are present, while the other returned candidates are absent. Thus, this test produced six false positives with one hash function, one with two, and none with three. As the exercise explains, `floter` is a valid Middle English suggestion, while `flower` is the intended correction. The Bloom filter alone cannot determine which valid suggestion the user intended.
 
 Increasing the hash count reduced false positives in this experiment because a candidate must pass every selected bit check. With one hash function, an absent word such as `bloeer` can pass when its position was set by another word. Additional hash functions require more corresponding positions to be one: `bloeer` is eliminated with two hashes, and `fyoeer` is eliminated with three. Inserted words still pass because their corresponding bits were set during insertion. A positive result remains probabilistic; zero false positives for this test does not guarantee zero false positives for other inputs. More hashes are not always better, since they also set more bits during insertion and can eventually make a fixed-size array too full.
 
