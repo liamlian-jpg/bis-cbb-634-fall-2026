@@ -1,51 +1,49 @@
-# Studio 3 — Big Data: Bloom Filter Spell Correction
+# Studio 3 — Big Data
 
-## Status and files
+## Part 1: Algorithmic Mechanics & Data Reconstruction Leakage
 
-Part 1 is implemented and verified. Parts 2 and later are not covered by this update.
+Implementation: [big-data-exercises.ipynb](big-data-exercises.ipynb).
 
-- [Notebook](big-data-exercises.ipynb): supplied BloomFilter class, word loading, three filter configurations, candidate generation, and saved results.
-- Input: place the assignment's `words.txt` beside the notebook. Input files remain local; obtain them from the course source.
-- Dependency: Python 3.9+ and `bitarray` (validation used version 3.11.0). In Jupyter, run `%pip install bitarray` if needed, then run the notebook from top to bottom with this folder as the working directory.
+The function `suggest_corrections(typed_word: str, bloom_filter: BloomFilter) -> list[str]` generates all single-character substitutions using lowercase letters a–z, excluding the original character at each position. It queries each candidate in the Bloom filter and returns those that test positive. For `floeer`, this produces 150 candidates before filtering.
 
-## Part 1 implementation
+### 1. Reconstruction Analysis
 
-`suggest_corrections(typed_word, bloom_filter)` lowercases the input and uses two nested loops. The outer loop visits each character position, and the inner loop tries each lowercase ASCII letter except the current one. Each candidate differs by exactly one substitution. Candidates are queried immediately and only positive results are appended. For an input of n lowercase ASCII letters, this makes 25n queries; `floeer` has 150 candidates. The function never inserts candidates into the filter.
+The Bloom filter's bit vector stores no raw text, ASCII values, or string pointers, but it still reveals information about membership in the protected vocabulary. An adversary can generate candidate mutations of known or suspected words and query the filter. The same hash functions map each candidate to positions in the bit array. If any corresponding bit is zero, the candidate is definitely absent; if all are one, it is possibly present. By repeating this process, an adversary can eliminate candidates and narrow down which words may be in the database without directly reading its contents.
 
-Three separate filters each contain 10**7 bits (about 1.25 MB of bit storage), using the first one, first two, or all three supplied hash functions. Within each filter, the hash functions share one bit array. All filters load the same word list.
+This is a form of data leakage because membership information itself reveals something about the protected data. The filter acts as a membership oracle: combined with linguistic patterns or domain knowledge, its responses can help reconstruct portions of the protected vocabulary. This does not require reversing the hashes or extracting strings from the bit vector. However, reconstruction may be incomplete or inaccurate because false positives can admit absent words, and words outside the generated candidate set remain undiscovered. Not storing raw text therefore does not eliminate the possibility of inference through queries.
 
-## Reconstruction analysis
+### 2. Execution Test
 
-Although the bit vector stores no raw text, it still reveals information about which words may belong to the protected vocabulary. An adversary can generate candidate mutations of known or suspected words and query the Bloom filter. Each candidate is mapped to bit positions using the same hash functions. If any corresponding bit is zero, the candidate is definitely absent; if all are one, it is possibly present. Repeating this process allows the adversary to eliminate candidates and identify plausible vocabulary without directly reading the underlying database.
+I loaded `words.txt` into three Bloom filters, each with `size=10**7` bits (approximately 1.25 MB of bit storage). The filters use the first hash function, the first two, and all three, respectively. Each filter uses one shared bit array and the same input word list. I tested the correction function with `"floeer"`.
 
-This constitutes data leakage because membership information is itself information about the protected data. The Bloom filter acts as a membership oracle, allowing an adversary to test guesses and combine the results with linguistic patterns or domain knowledge to infer protected words. Reconstruction is not guaranteed to be exact or complete: false positives can make absent words appear present, and words outside the generated candidate set remain undiscovered. Omitting raw strings prevents direct reading but does not prevent inference through repeated queries.
+The verified notebook outputs are:
 
-## Execution results
+**First hash function — SHA-256:**
 
-Verified on September 27, 2026 by executing the saved notebook code in a fresh Python namespace. The local input contains 466,550 nonblank entries and 466,546 distinct lowercased words.
+```python
+['bloeer', 'qloeer', 'fyoeer', 'flofer', 'floter', 'flower', 'floeqr', 'floees']
+```
 
-Input SHA-256: `39a4ead879cc8283de87f2ec58e7b4b340d6caa724db1b52a91dccf2f273c5e7`
+**First and second hash functions — SHA-256 and BLAKE2b:**
 
-Test input: `floeer`.
+```python
+['fyoeer', 'floter', 'flower']
+```
 
-| Hash count | Suggestions | False positives checked against the input word set |
-| --- | --- | --- |
-| 1 | `bloeer`, `qloeer`, `fyoeer`, `flofer`, `floter`, `flower`, `floeqr`, `floees` | 6 |
-| 2 | `fyoeer`, `floter`, `flower` | 1 |
-| 3 | `floter`, `flower` | 0 |
+**All three hash functions — SHA-256, BLAKE2b, and SHA3-256:**
 
-These outputs match the assignment examples. Both `floter` and `flower` occur in the supplied word list. The filter cannot determine which is the intended word. All distinct inserted words were also checked against the three-hash filter and returned positive. The exact word set was used only for validation, not inside the correction function. These counts describe this one candidate set, not an overall false-positive rate.
+```python
+['floter', 'flower']
+```
 
-Increasing the number of checked hash positions reduced false positives in this experiment: an absent word must encounter a one at every checked position to pass. However, additional hashes also set more bits during insertion. With fixed array size, excessive hash counts can increase occupancy and eventually worsen false positives. The approximate optimum is k = (m/n) ln(2), where m is the bit count and n is the distinct inserted-word count; this implementation supplies only three hash functions.
+These results match the exercise examples. Checking the suggestions against the supplied word list confirms that `floter` and `flower` are present, while the other returned candidates are absent. Thus, this test produced six false positives with one hash function, one with two, and none with three. As the exercise explains, `floter` is a valid Middle English suggestion, while `flower` is the intended correction. The Bloom filter alone cannot determine which valid suggestion the user intended.
 
-Implementation detail: `_get_hashes` computes all three digests before slicing the list. Thus `hash_count=1` does not perform only one digest calculation in the supplied code. The configurations differ in positions set and checked, not in the number of digests computed. No runtime speedup is claimed.
+Increasing the hash count reduced false positives in this experiment because a candidate must pass every selected bit check. With one hash function, an absent word such as `bloeer` can pass when its position was set by another word. Additional hash functions require more corresponding positions to be one: `bloeer` is eliminated with two hashes, and `fyoeer` is eliminated with three. Inserted words still pass because their corresponding bits were set during insertion. A positive result remains probabilistic; zero false positives for this test does not guarantee zero false positives for other inputs. More hashes are not always better, since they also set more bits during insertion and can eventually make a fixed-size array too full.
 
-## Design decision and debugging
+---
 
-We generate and query candidates on the fly to avoid storing the full candidate list. This reduces temporary memory usage, but candidates are regenerated for each filter comparison. We accepted this repeated work to keep the function simple and consistent with the required interface. Single-character substitutions, the filter size, and the hash-count comparison are assignment constraints rather than our independent design choices.
+### Reproduction and AI assistance
 
-An initial comparison used `floter` instead of the required `floeer`, so it generated a different candidate set. Correcting the test input produced the expected outputs. The key lesson is to check the input and configuration before assuming the algorithm is wrong, and to interpret a positive Bloom filter result as possible membership rather than proof.
+Place the course-provided `words.txt` beside the notebook, install `bitarray` if needed, and run the cells from top to bottom. The reported outputs were independently rerun and checked against the local word list on September 27, 2026. The exact word list was used to validate results, not to filter candidates inside `suggest_corrections`.
 
-## AI assistance and verification
-
-ChatGPT/Codex assisted with explaining the supplied code, drafting the correction function and analysis, and distinguishing assignment constraints from implementation trade-offs. The student discussed the logic and examined notebook outputs. Codex reran the code against the local word list and checked the results reported above. This update does not claim completion of later parts.
+ChatGPT/Codex assisted with the correction function, explanations, and README drafting. The student discussed the algorithm and examined its outputs; Codex also reran the code to verify the reported results.
