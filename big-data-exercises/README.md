@@ -88,6 +88,17 @@ The evaluation dataset contains 50,000 pairs of `[typed_word, correct_word]`, in
 
 Part 1's function remains unchanged. For Part 2, `suggest_corrections_part2` generates the same substitutions and adds the original lowercased word once if it passes the Bloom filter. This handles correctly spelled inputs without using the answer to generate suggestions. `correct_word` is used only for scoring. A mistyped original word that passes as a false positive is also included. This is our explicit evaluation convention for the full dataset.
 
+The additional block in `suggest_corrections_part2` appears after the substitution loops and immediately before `return suggestions`:
+
+```python
+    # Include the original word once if it passes the Bloom filter.
+    if word in bloom_filter:
+        suggestions.append(word)
+
+    return suggestions
+```
+
+
 ### 2. Parametric Plotting and Parallel Architecture
 
 The final sweep evaluates 23 filter sizes from 1,000 to 1,000,000,000 bits with hash counts 1, 2, and 3: **69 independent configurations**. Each configuration rebuilds its filter from the same word list and computes both metrics on the same evaluation data.
@@ -145,12 +156,20 @@ They also do not make this vocabulary confidential. As discussed in Part 1, an a
 
 ---
 
-### Reproduction and AI assistance
+## Studio 3 — Code evolution and design choices
 
-Place the course-provided `words.txt` and `typos.json` beside the notebook. Use Python 3.9+ with `bitarray` and `matplotlib`. Run the notebook cells in order. The parallel worker functions live in an importable Python module to support spawned processes from Jupyter. The module contains copies of the current evaluation functions; future algorithm changes must be applied consistently to both the notebook and module.
+I began with the supplied Bloom filter and used nested loops to generate single-character substitutions. I excluded the original letter at each position and queried candidates as they were generated, keeping only those that passed. This avoided storing the full candidate set, at the cost of regenerating it for each filter configuration. An initial test used `floter` instead of `floeer`; correcting the input resolved the mismatch with the exercise's example outputs.
 
-The notebook's parallel cell requests the full 23-size grid. Keep earlier points in that list when adding sizes to retain checkpoint reuse. The committed checkpoint can be reused only when local input and module hashes match. For a fresh run, choose a new output path or explicitly use `resume=False`. Plotting reads the saved CSV and does not require repeating the sweep.
+For Part 2, I separated the two metric denominators: misidentification uses only typo cases, while Good Suggestion uses all evaluation cases. I kept Part 1 unchanged and created `suggest_corrections_part2`, which includes the original word once only if it passes the filter. This avoids duplicate original words and handles correctly spelled inputs without consulting the ground-truth answer. I used counters rather than retaining every case's result, and scored the full suggestion list without truncating it to three.
 
-The student ran the full experiment and refined its parameter grid. Codex checked all 69 saved configuration records against the checkpoint, verified the checkpoint's input and code hashes, reviewed the final graph, and checked the reported threshold values against the CSV. Small synthetic tests previously confirmed agreement between the parallel implementation and notebook calculations; the complete sweep was not independently rerun during this documentation update.
+After running the metrics for a fixed filter size, I expanded the experiment to compare filter sizes and hash counts. With Codex's help, I used a three-worker process pool to evaluate independent configurations. Each worker builds its own filter, while the main process collects results and saves progress. I retained completed configurations through a checkpoint, so adding parameter points did not require restarting the entire sweep. This made repeated refinement practical, although each worker needs its own memory and no serial-versus-parallel speedup was measured.
 
-ChatGPT/Codex assisted with the correction and evaluation functions, the process-pool/checkpoint architecture, plotting code, and README drafting. The student discussed the design choices, interpreted results, and contributed the analysis of real-word ambiguity, candidate-space growth, and hashing trade-offs.
+I increased the grid to 23 filter sizes, adding points around the transitions and extending it to 500 million and one billion bits to observe the one-hash curve approaching its plateau. I combined both metrics into one graph with six lines and widened the figure for readability. The logarithmic axis accommodates the large size range, and the lines connect actual observations without smoothing. Saved CSV results let me revise the graph without rerunning the experiment. I reported the 85% crossing intervals and first qualifying measured sizes rather than claiming exact thresholds between sampled points.
+
+In interpreting the results, I distinguished Bloom filter false positives from genuine ambiguity among similar words. More real-word candidates can violate the three-suggestion limit even when membership checks are accurate. I also separated the performance requirements of ordinary membership filtering from the security properties of cryptographic hashing. The final graph's plateau is observed, but I have not performed a case-by-case analysis to establish its exact causes or benchmarked replacement hash algorithms.
+
+## Studio 3 — AI assistance
+
+I used OpenAI Codex to assist with code generation, README writing, debugging, and code maintenance. We discussed candidate generation, metric denominators, handling correctly spelled inputs without using the answer, parallel execution, checkpoint reuse, graph design, and the interpretation of capacity thresholds. I ran the full experiment, expanded the parameter grid, and reviewed the outputs. I contributed the reasoning about genuine-word ambiguity and hashing trade-offs; Codex helped refine the complexity terminology and explain k-mers and cryptographic hash properties where I needed guidance.
+
+Codex implemented the process-pool and checkpoint structure, helped express the analysis, and checked the 69 saved records against the checkpoint, input and code hashes, and reported threshold values. Small synthetic tests checked agreement between the parallel implementation and notebook calculations; the complete sweep was not independently rerun during the documentation update. I made the overall decisions through this discussion and retained responsibility for understanding and verifying the final work.
