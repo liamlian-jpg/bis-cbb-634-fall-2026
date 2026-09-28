@@ -76,10 +76,81 @@ The verified notebook outputs are:
 
 Increasing the hash count reduced false positives in this experiment because a candidate must pass every selected bit check. With one hash function, an absent word such as `bloeer` can pass when its position was set by another word. Additional hash functions require more corresponding positions to be one: `bloeer` is eliminated with two hashes, and `fyoeer` is eliminated with three. Inserted words still pass because their corresponding bits were set during insertion. A positive result remains probabilistic; zero false positives for this test does not guarantee zero false positives for other inputs. More hashes are not always better, since they also set more bits during insertion and can eventually make a fixed-size array too full.
 
+
+## Part 2: Empirical Evaluation & Plotting
+
+### 1. Metrics Definition
+
+The evaluation dataset contains 50,000 pairs of `[typed_word, correct_word]`, including 25,000 pairs with different input and target strings. Both metrics reuse the same vocabulary from `words.txt`.
+
+- **Misidentified Percent:** 100 times the number of typo inputs accepted by the Bloom filter, divided by the 25,000 typo cases. Correctly spelled inputs are excluded from this denominator. This follows the assignment's typo-based definition.
+- **Good Suggestion Percent:** 100 times the number of cases whose suggestion list contains at most three entries and includes `correct_word`, divided by all 50,000 cases. The other suggestions need not all be real words to satisfy this definition. Lists are not truncated to three before scoring.
+
+Part 1's function remains unchanged. For Part 2, `suggest_corrections_part2` generates the same substitutions and adds the original lowercased word once if it passes the Bloom filter. This handles correctly spelled inputs without using the answer to generate suggestions. `correct_word` is used only for scoring. A mistyped original word that passes as a false positive is also included. This is our explicit evaluation convention for the full dataset.
+
+### 2. Parametric Plotting and Parallel Architecture
+
+The final sweep evaluates 23 filter sizes from 1,000 to 1,000,000,000 bits with hash counts 1, 2, and 3: **69 independent configurations**. Each configuration rebuilds its filter from the same word list and computes both metrics on the same evaluation data.
+
+The main design decision was to parallelize **whole configurations**, rather than have workers modify a shared filter or counter. The implementation is in [part2_parallel.py](part2_parallel.py):
+
+1. `ProcessPoolExecutor` creates up to three reusable worker processes using the `spawn` context. Each worker loads the vocabulary and test pairs once through an initializer.
+2. Each task owns one `(filter_size, hash_count)` configuration, builds its own Bloom filter, and returns a small result record. No shared mutable counters, `Manager`, or shared bit array are needed.
+3. The main process receives finished tasks through `as_completed()`, prints progress, and writes the accumulated results. Workers do not write the CSV, avoiding concurrent file writes.
+4. After every completed configuration, the main process atomically replaces the checkpoint and CSV files. The checkpoint records input-file and module-code hashes. On a subsequent run with matching inputs and code, completed configurations present in the checkpoint and still requested are skipped; only missing configurations run.
+
+This checkpoint design made iterative refinement practical: we kept the earlier size values, added new points around the transition regions, and later extended the range to 500 million and one billion bits without repeating the retained completed configurations. It is not a permanent cache of every past experiment: narrowing a requested grid rewrites the checkpoint with only retained configurations. If input data or module code changes, the program rejects reuse; a new output path or `resume=False` starts a fresh run.
+
+`ProcessPoolExecutor` is a Python standard-library interface built on multiprocessing. We chose its futures interface for convenient completion-order collection and error reporting. Lecture 4's `multiprocessing.Pool` with `imap_unordered()` could implement the same workflow; no claim is made that our interface is inherently faster. The design follows the lecture's principles of reusing workers, sharing less state, and centralizing output. [Python documentation](https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor)
+
+The trade-off is additional memory for worker-local data and filters, plus process startup and communication overhead. At the largest size, each bit array alone requires about 125 MB, before vocabulary and interpreter overhead. We used three workers rather than launching all 69 configurations at once. We did not measure a serial-versus-parallel speedup. The supplied `_get_hashes` computes all three digests before slicing, so fewer selected hashes do not eliminate those digest computations.
+
+**Final experimental results:** [CSV](part2-results-parallel.csv). The notebook contains the exact parameter grid and plotting code; the [checkpoint](part2-results-parallel.checkpoint.json) supports resuming with matching local inputs and code.
+
+![Misidentified and Good Suggestion percentages versus Bloom filter size for one, two, and three hash functions](part2-filter-size-combined.png)
+
+The six lines connect measured values on a logarithmic horizontal axis; no smoothing or fitted curve was applied. Larger filters generally reduce misidentification and improve the Good Suggestion percentage. Two and three hashes reach high suggestion quality with much less space than one hash. At one billion bits, the Good Suggestion percentages are 88.408%, 88.964%, and 88.966% for one, two, and three hashes. The plateau is an observed result; a case-level failure analysis has not been performed, so its exact causes are not established here.
+
+## Part 3: Deep Dive & Critical Analysis
+
+### 1. Filter Capacity Threshold
+
+The saved empirical results bracket the 85% Good Suggestion threshold as follows:
+
+| Hash count | Last tested point below 85% | First tested point at or above 85% | Observed crossing interval (bits) |
+| --- | --- | --- | --- |
+| 1 | 100,000,000 bits: 73.412% | 500,000,000 bits: 87.670% | 100,000,000–500,000,000 |
+| 2 | 20,000,000 bits: 84.784% | 23,000,000 bits: 86.160% | 20,000,000–23,000,000 |
+| 3 | 9,000,000 bits: 81.496% | 11,000,000 bits: 85.932% | 9,000,000–11,000,000 |
+
+Among the tested configurations, the smallest sizes achieving at least 85% are therefore **500 million, 23 million, and 11 million bits** for one, two, and three hashes, respectively. These are measured sufficient sizes, not exact minimum thresholds. The one-hash interval is especially wide because of sparse sampling there; additional points would be needed for a tighter estimate. The comparison shows that, in this experiment, extra hash checks substantially reduce the storage needed to reach the target.
+
+### 2. Combinatorial Explosion & Mutation Spaces (Edit Distance vs. K-mers)
+
+Our single-character substitution implementation generates `25L` candidates for a lowercase word of length `L`, since it excludes replacing a character with itself. Part 2 separately considers the unchanged word once. Allowing two edits greatly expands the search: even exactly two substitutions at different positions produce `C(L, 2) * 25**2` distinct strings. For a six-letter word, this is 9,375 candidates, compared with 150 for one substitution. Insertions, deletions, and adjacent transpositions add further possibilities, and different edit paths can generate the same string, requiring deduplication. With edit distance fixed at two, the naive candidate-generation scale is roughly quadratic in word length for a fixed alphabet, rather than exponential in length. The branching search grows rapidly, approximately exponentially in permitted edit depth before accounting for duplicate paths, when the allowed number of edits increases.
+
+More absent candidates mean more opportunities for false positives. If `Q` queried candidates are absent and each has approximately false-positive probability `p`, the expected number of false-positive candidates is about `Qp`. More queries do not by themselves increase the filter's per-query false-positive probability, but they increase total false-positive overhead and computational work. A separate issue is genuine vocabulary ambiguity: many English words are only one or two edits apart. Even a perfect membership test can return more than three real words, failing the Good Suggestion criterion without any Bloom filter false positives. Expanding the edit radius can also recover previously unreachable correct answers, so the net effect on Good Suggestion Rate is not guaranteed to be negative; it balances better coverage against longer, more ambiguous lists.
+
+The same reasoning applies to sequence reads and k-mers. A read is a sequenced DNA fragment; a k-mer is a contiguous substring of length k. For example, `ACGTAC` contains the 3-mers `ACG`, `CGT`, `GTA`, and `TAC`. Here k denotes substring length, not the number of Bloom filter hashes. A filter containing trusted reference k-mers can screen candidate variants of a potentially erroneous sequence fragment. With the four-letter DNA alphabet, one substitution generates `3L` candidates, but permitting multiple edits or insertions/deletions still expands the search substantially. A single substitution within a read can affect several overlapping k-mers. Repeats and similar genomic regions create genuine matching ambiguity in addition to probabilistic false positives. Thus a Bloom filter can act as an efficient preliminary screen, while alignment, base-quality information, or neighboring sequence context may be needed to resolve candidates. [Background on k-mers](https://pmc.ncbi.nlm.nih.gov/articles/PMC11874746/)
+
+Sequencing errors should be distinguished from true biological variants, and their relative frequencies depend on sequencing technology. Insertions and deletions are often called indels. The adjacent-character transpositions considered in edit-distance search should not be equated with large chromosomal translocations or rearrangements. [NHGRI: Human Genomic Variation](https://www.genome.gov/about-genomics/educational-resources/fact-sheets/human-genomic-variation)
+
+### 3. Cryptographic vs. Non-Cryptographic Hash Efficiency
+
+In this non-adversarial evaluation, cryptographic hashes may provide poor performance value relative to the properties we need: deterministic, fast computation with well-distributed positions and sufficiently low correlation between hash outputs. SHA-256, BLAKE2b, and SHA3-256 also target security properties such as preimage resistance (difficulty finding an input for a specified digest) and collision resistance (difficulty deliberately finding two different inputs with the same digest). Their cryptographic processing can add overhead to the very large number of short-string queries performed here. Non-cryptographic alternatives such as MurmurHash3, xxHash, and FNV-1a do not provide those security guarantees and may be better suited to fast membership filtering, but they are not interchangeable in quality or speed. A particular replacement should be assessed for both distribution and runtime; we did not benchmark alternatives. [NIST hash properties](https://csrc.nist.gov/glossary/term/Cryptographic_hash_function), [xxHash design](https://xxhash.com/)
+
+Cryptographic collision resistance does not remove Bloom filter collisions: the full digest is reduced modulo the finite bit-array size, so distinct digests can still map to the same position. False positives can also result from different inserted words collectively setting all queried positions. Cryptographic hashes therefore provide no automatic structural advantage over suitably distributed non-cryptographic hashes for ordinary Bloom filter membership checks. Accuracy depends on capacity, inserted-item count, hash count, and the quality and dependence of the resulting positions, not simply on whether the algorithm is cryptographic.
+
+They also do not make this vocabulary confidential. As discussed in Part 1, an adversary can compute hashes of candidate words and test membership without inverting any digest. The current public, unkeyed implementation therefore does not prevent reconstruction leakage merely by using cryptographic hashes. Cryptographic or keyed designs can matter under adversarial threat models, but that is a separate security design question; even keying alone does not eliminate leakage if unrestricted membership queries remain available. For this exercise, fast non-cryptographic hashing is a reasonable alternative to investigate rather than assuming cryptographic strength is necessary.
+
 ---
 
 ### Reproduction and AI assistance
 
-Place the course-provided `words.txt` beside the notebook, install `bitarray` if needed, and run the cells from top to bottom. The reported outputs were independently rerun and checked against the local word list on September 27, 2026. The exact word list was used to validate results, not to filter candidates inside `suggest_corrections`.
+Place the course-provided `words.txt` and `typos.json` beside the notebook. Use Python 3.9+ with `bitarray` and `matplotlib`. Run the notebook cells in order. The parallel worker functions live in an importable Python module to support spawned processes from Jupyter. The module contains copies of the current evaluation functions; future algorithm changes must be applied consistently to both the notebook and module.
 
-ChatGPT/Codex assisted with the correction function, explanations, and README drafting. The student discussed the algorithm and examined its outputs; Codex also reran the code to verify the reported results.
+The notebook's parallel cell requests the full 23-size grid. Keep earlier points in that list when adding sizes to retain checkpoint reuse. The committed checkpoint can be reused only when local input and module hashes match. For a fresh run, choose a new output path or explicitly use `resume=False`. Plotting reads the saved CSV and does not require repeating the sweep.
+
+The student ran the full experiment and refined its parameter grid. Codex checked all 69 saved configuration records against the checkpoint, verified the checkpoint's input and code hashes, reviewed the final graph, and checked the reported threshold values against the CSV. Small synthetic tests previously confirmed agreement between the parallel implementation and notebook calculations; the complete sweep was not independently rerun during this documentation update.
+
+ChatGPT/Codex assisted with the correction and evaluation functions, the process-pool/checkpoint architecture, plotting code, and README drafting. The student discussed the design choices, interpreted results, and contributed the analysis of real-word ambiguity, candidate-space growth, and hashing trade-offs.

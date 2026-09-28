@@ -1,0 +1,423 @@
+{
+  "signature": {
+    "words_sha256": "39a4ead879cc8283de87f2ec58e7b4b340d6caa724db1b52a91dccf2f273c5e7",
+    "typos_sha256": "3145cebcac7c1e5ba3664984df70297dd4554808b5121fab782c5a4fe7d7d76d",
+    "code_sha256": "e5cf57b3cd5c4905e4e21c2037007d96c1a8adab53307da1c31f09f17627c551"
+  },
+  "results": [
+    {
+      "filter_size_bits": 1000,
+      "hash_count": 1,
+      "misidentified_percent": 100.0,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 1000,
+      "hash_count": 2,
+      "misidentified_percent": 100.0,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 1000,
+      "hash_count": 3,
+      "misidentified_percent": 100.0,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 10000,
+      "hash_count": 1,
+      "misidentified_percent": 100.0,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 10000,
+      "hash_count": 2,
+      "misidentified_percent": 100.0,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 10000,
+      "hash_count": 3,
+      "misidentified_percent": 100.0,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 100000,
+      "hash_count": 1,
+      "misidentified_percent": 98.908,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 100000,
+      "hash_count": 2,
+      "misidentified_percent": 99.996,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 100000,
+      "hash_count": 3,
+      "misidentified_percent": 100.0,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 300000,
+      "hash_count": 1,
+      "misidentified_percent": 78.632,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 300000,
+      "hash_count": 2,
+      "misidentified_percent": 91.74,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 300000,
+      "hash_count": 3,
+      "misidentified_percent": 97.368,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 1000000,
+      "hash_count": 1,
+      "misidentified_percent": 36.931999999999995,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 1000000,
+      "hash_count": 2,
+      "misidentified_percent": 36.868,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 1000000,
+      "hash_count": 3,
+      "misidentified_percent": 42.903999999999996,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 2000000,
+      "hash_count": 1,
+      "misidentified_percent": 20.504,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 2000000,
+      "hash_count": 2,
+      "misidentified_percent": 13.96,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 2000000,
+      "hash_count": 3,
+      "misidentified_percent": 12.416,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 3000000,
+      "hash_count": 1,
+      "misidentified_percent": 14.292,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 3000000,
+      "hash_count": 2,
+      "misidentified_percent": 7.228,
+      "good_suggestion_percent": 0.018000000000000002
+    },
+    {
+      "filter_size_bits": 3000000,
+      "hash_count": 3,
+      "misidentified_percent": 5.06,
+      "good_suggestion_percent": 0.14400000000000002
+    },
+    {
+      "filter_size_bits": 5000000,
+      "hash_count": 1,
+      "misidentified_percent": 8.652,
+      "good_suggestion_percent": 0.0
+    },
+    {
+      "filter_size_bits": 5000000,
+      "hash_count": 2,
+      "misidentified_percent": 2.888,
+      "good_suggestion_percent": 3.422
+    },
+    {
+      "filter_size_bits": 5000000,
+      "hash_count": 3,
+      "misidentified_percent": 1.392,
+      "good_suggestion_percent": 24.764
+    },
+    {
+      "filter_size_bits": 7000000,
+      "hash_count": 1,
+      "misidentified_percent": 5.92,
+      "good_suggestion_percent": 0.038
+    },
+    {
+      "filter_size_bits": 7000000,
+      "hash_count": 2,
+      "misidentified_percent": 1.444,
+      "good_suggestion_percent": 21.759999999999998
+    },
+    {
+      "filter_size_bits": 7000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.5599999999999999,
+      "good_suggestion_percent": 66.066
+    },
+    {
+      "filter_size_bits": 9000000,
+      "hash_count": 1,
+      "misidentified_percent": 4.992,
+      "good_suggestion_percent": 0.19
+    },
+    {
+      "filter_size_bits": 9000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.988,
+      "good_suggestion_percent": 44.916
+    },
+    {
+      "filter_size_bits": 9000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.32399999999999995,
+      "good_suggestion_percent": 81.496
+    },
+    {
+      "filter_size_bits": 11000000,
+      "hash_count": 1,
+      "misidentified_percent": 4.18,
+      "good_suggestion_percent": 0.65
+    },
+    {
+      "filter_size_bits": 11000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.728,
+      "good_suggestion_percent": 62.156
+    },
+    {
+      "filter_size_bits": 11000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.172,
+      "good_suggestion_percent": 85.932
+    },
+    {
+      "filter_size_bits": 14000000,
+      "hash_count": 1,
+      "misidentified_percent": 2.96,
+      "good_suggestion_percent": 2.012
+    },
+    {
+      "filter_size_bits": 14000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.4,
+      "good_suggestion_percent": 75.984
+    },
+    {
+      "filter_size_bits": 14000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.076,
+      "good_suggestion_percent": 87.78200000000001
+    },
+    {
+      "filter_size_bits": 17000000,
+      "hash_count": 1,
+      "misidentified_percent": 2.5919999999999996,
+      "good_suggestion_percent": 4.488
+    },
+    {
+      "filter_size_bits": 17000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.248,
+      "good_suggestion_percent": 82.072
+    },
+    {
+      "filter_size_bits": 17000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.052,
+      "good_suggestion_percent": 88.376
+    },
+    {
+      "filter_size_bits": 20000000,
+      "hash_count": 1,
+      "misidentified_percent": 2.276,
+      "good_suggestion_percent": 7.9079999999999995
+    },
+    {
+      "filter_size_bits": 20000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.2,
+      "good_suggestion_percent": 84.784
+    },
+    {
+      "filter_size_bits": 20000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.02,
+      "good_suggestion_percent": 88.66199999999999
+    },
+    {
+      "filter_size_bits": 23000000,
+      "hash_count": 1,
+      "misidentified_percent": 2.108,
+      "good_suggestion_percent": 11.734
+    },
+    {
+      "filter_size_bits": 23000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.136,
+      "good_suggestion_percent": 86.16
+    },
+    {
+      "filter_size_bits": 23000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.016,
+      "good_suggestion_percent": 88.73
+    },
+    {
+      "filter_size_bits": 26000000,
+      "hash_count": 1,
+      "misidentified_percent": 1.8599999999999999,
+      "good_suggestion_percent": 15.918
+    },
+    {
+      "filter_size_bits": 26000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.132,
+      "good_suggestion_percent": 87.02600000000001
+    },
+    {
+      "filter_size_bits": 26000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.012,
+      "good_suggestion_percent": 88.84
+    },
+    {
+      "filter_size_bits": 30000000,
+      "hash_count": 1,
+      "misidentified_percent": 1.532,
+      "good_suggestion_percent": 21.854000000000003
+    },
+    {
+      "filter_size_bits": 30000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.092,
+      "good_suggestion_percent": 87.72
+    },
+    {
+      "filter_size_bits": 30000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.004,
+      "good_suggestion_percent": 88.87
+    },
+    {
+      "filter_size_bits": 50000000,
+      "hash_count": 1,
+      "misidentified_percent": 0.8920000000000001,
+      "good_suggestion_percent": 46.77
+    },
+    {
+      "filter_size_bits": 50000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.027999999999999997,
+      "good_suggestion_percent": 88.57199999999999
+    },
+    {
+      "filter_size_bits": 50000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.93799999999999
+    },
+    {
+      "filter_size_bits": 70000000,
+      "hash_count": 1,
+      "misidentified_percent": 0.592,
+      "good_suggestion_percent": 61.772000000000006
+    },
+    {
+      "filter_size_bits": 70000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.004,
+      "good_suggestion_percent": 88.79
+    },
+    {
+      "filter_size_bits": 70000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.96
+    },
+    {
+      "filter_size_bits": 90000000,
+      "hash_count": 1,
+      "misidentified_percent": 0.5,
+      "good_suggestion_percent": 70.256
+    },
+    {
+      "filter_size_bits": 90000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.02,
+      "good_suggestion_percent": 88.838
+    },
+    {
+      "filter_size_bits": 90000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.964
+    },
+    {
+      "filter_size_bits": 100000000,
+      "hash_count": 1,
+      "misidentified_percent": 0.45999999999999996,
+      "good_suggestion_percent": 73.412
+    },
+    {
+      "filter_size_bits": 100000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.004,
+      "good_suggestion_percent": 88.884
+    },
+    {
+      "filter_size_bits": 100000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.966
+    },
+    {
+      "filter_size_bits": 500000000,
+      "hash_count": 1,
+      "misidentified_percent": 0.1,
+      "good_suggestion_percent": 87.67
+    },
+    {
+      "filter_size_bits": 500000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.96
+    },
+    {
+      "filter_size_bits": 500000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.966
+    },
+    {
+      "filter_size_bits": 1000000000,
+      "hash_count": 1,
+      "misidentified_percent": 0.052,
+      "good_suggestion_percent": 88.408
+    },
+    {
+      "filter_size_bits": 1000000000,
+      "hash_count": 2,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.964
+    },
+    {
+      "filter_size_bits": 1000000000,
+      "hash_count": 3,
+      "misidentified_percent": 0.0,
+      "good_suggestion_percent": 88.966
+    }
+  ]
+}
