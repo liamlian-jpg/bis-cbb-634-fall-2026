@@ -1,5 +1,14 @@
 # Studio 3 — Big Data
 
+[Back to course portfolio](../README.md)
+
+**Course:** BIS/CBB 634 — Computational Methods for Informatics, Fall 2026<br>
+**Author:** Liam Lian (xl758)
+
+This folder contains the Studio 3 Bloom filter exercise: vocabulary reconstruction, empirical spell-correction evaluation, and analysis of capacity, mutation spaces, and hash-function choices.
+
+The implementation and plotting cells are in [big-data-exercises.ipynb](big-data-exercises.ipynb); parallel workers and checkpoint handling are in [part2_parallel.py](part2_parallel.py). To run the notebook, use Python with Jupyter, `bitarray`, and `matplotlib`. Place the assigned [words.txt](https://github.com/dwyl/english-words/blob/master/words.txt) and course-provided `typos.json` beside the notebook; input files are not included in this repository. Run the notebook cells in order from this directory. The plotting cell can also read the saved CSV without rerunning the sweep.
+
 ## Part 1: Algorithmic Mechanics & Data Reconstruction Leakage
 
 Implementation: [big-data-exercises.ipynb](big-data-exercises.ipynb).
@@ -54,28 +63,27 @@ print(suggest_corrections("floeer", bf2))
 print(suggest_corrections("floeer", bf3))
 ```
 
-The verified notebook outputs are:
+The saved notebook outputs are:
 
 **First hash function — SHA-256:**
 
-```python
+```text
 ['bloeer', 'qloeer', 'fyoeer', 'flofer', 'floter', 'flower', 'floeqr', 'floees']
 ```
 
 **First and second hash functions — SHA-256 and BLAKE2b:**
 
-```python
+```text
 ['fyoeer', 'floter', 'flower']
 ```
 
 **All three hash functions — SHA-256, BLAKE2b, and SHA3-256:**
 
-```python
+```text
 ['floter', 'flower']
 ```
 
 Increasing the hash count reduced false positives in this experiment because a candidate must pass every selected bit check. With one hash function, an absent word such as `bloeer` can pass when its position was set by another word. Additional hash functions require more corresponding positions to be one: `bloeer` is eliminated with two hashes, and `fyoeer` is eliminated with three. Inserted words still pass because their corresponding bits were set during insertion. A positive result remains probabilistic; zero false positives for this test does not guarantee zero false positives for other inputs. More hashes are not always better, since they also set more bits during insertion and can eventually make a fixed-size array too full.
-
 
 ## Part 2: Empirical Evaluation & Plotting
 
@@ -86,7 +94,7 @@ The evaluation dataset contains 50,000 pairs of `[typed_word, correct_word]`, in
 - **Misidentified Percent:** 100 times the number of typo inputs accepted by the Bloom filter, divided by the 25,000 typo cases. Correctly spelled inputs are excluded from this denominator. This follows the assignment's typo-based definition.
 - **Good Suggestion Percent:** 100 times the number of cases whose suggestion list contains at most three entries and includes `correct_word`, divided by all 50,000 cases. The other suggestions need not all be real words to satisfy this definition. Lists are not truncated to three before scoring.
 
-Part 1's function remains unchanged. For Part 2, `suggest_corrections_part2` generates the same substitutions and adds the original lowercased word once if it passes the Bloom filter. This handles correctly spelled inputs without using the answer to generate suggestions. `correct_word` is used only for scoring. A mistyped original word that passes as a false positive is also included. This is our explicit evaluation convention for the full dataset.
+Part 1's function remains unchanged. For Part 2, `suggest_corrections_part2` generates the same substitutions and adds the original lowercased word once if it passes the Bloom filter. This handles correctly spelled inputs without using the answer to generate suggestions. `correct_word` is used only for scoring. A mistyped original word that passes as a false positive is also included. This is my explicit evaluation convention for the full dataset.
 
 The additional block in `suggest_corrections_part2` appears after the substitution loops and immediately before `return suggestions`:
 
@@ -98,6 +106,43 @@ The additional block in `suggest_corrections_part2` appears after the substituti
     return suggestions
 ```
 
+The metric calculations below use the full `typos` dataset and its separately filtered typo subset. `suggest_corrections_part2` is defined above in the notebook.
+
+```python
+typo_pairs = [
+    (typed_word, correct_word)
+    for typed_word, correct_word in typos
+    if typed_word != correct_word
+]
+
+def misidentified_percent(typo_pairs, bloom_filter):
+    if len(typo_pairs) == 0:
+        return None
+
+    false_positive_count = 0
+
+    for typed_word, correct_word in typo_pairs:
+        if typed_word in bloom_filter:
+            false_positive_count += 1
+
+    return false_positive_count / len(typo_pairs) * 100
+
+def good_suggestion_percent(typos, bloom_filter):
+    if len(typos) == 0:
+        return None
+
+    good_count = 0
+
+    for typed_word, correct_word in typos:
+        suggestions = suggest_corrections_part2(
+            typed_word, bloom_filter
+        )
+
+        if len(suggestions) <= 3 and correct_word in suggestions:
+            good_count += 1
+
+    return good_count / len(typos) * 100
+```
 
 ### 2. Parametric Plotting and Parallel Architecture
 
@@ -110,11 +155,11 @@ The main design decision was to parallelize **whole configurations**, rather tha
 3. The main process receives finished tasks through `as_completed()`, prints progress, and writes the accumulated results. Workers do not write the CSV, avoiding concurrent file writes.
 4. After every completed configuration, the main process atomically replaces the checkpoint and CSV files. The checkpoint records input-file and module-code hashes. On a subsequent run with matching inputs and code, completed configurations present in the checkpoint and still requested are skipped; only missing configurations run.
 
-This checkpoint design made iterative refinement practical: we kept the earlier size values, added new points around the transition regions, and later extended the range to 500 million and one billion bits without repeating the retained completed configurations. It is not a permanent cache of every past experiment: narrowing a requested grid rewrites the checkpoint with only retained configurations. If input data or module code changes, the program rejects reuse; a new output path or `resume=False` starts a fresh run.
+This checkpoint design made iterative refinement practical: I kept the earlier size values, added new points around the transition regions, and later extended the range to 500 million and one billion bits without repeating the retained completed configurations. It is not a permanent cache of every past experiment: narrowing a requested grid rewrites the checkpoint with only retained configurations. If input data or module code changes, the program rejects reuse; a new output path or `resume=False` starts a fresh run.
 
-`ProcessPoolExecutor` is a Python standard-library interface built on multiprocessing. We chose its futures interface for convenient completion-order collection and error reporting. Lecture 4's `multiprocessing.Pool` with `imap_unordered()` could implement the same workflow; no claim is made that our interface is inherently faster. The design follows the lecture's principles of reusing workers, sharing less state, and centralizing output. [Python documentation](https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor)
+`ProcessPoolExecutor` is a Python standard-library interface built on multiprocessing. I chose its futures interface for convenient completion-order collection and error reporting. Lecture 4's `multiprocessing.Pool` with `imap_unordered()` could implement the same workflow; no claim is made that our interface is inherently faster. The design follows the lecture's principles of reusing workers, sharing less state, and centralizing output. [Python documentation](https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor)
 
-The trade-off is additional memory for worker-local data and filters, plus process startup and communication overhead. At the largest size, each bit array alone requires about 125 MB, before vocabulary and interpreter overhead. We used three workers rather than launching all 69 configurations at once. We did not measure a serial-versus-parallel speedup. The supplied `_get_hashes` computes all three digests before slicing, so fewer selected hashes do not eliminate those digest computations.
+The trade-off is additional memory for worker-local data and filters, plus process startup and communication overhead. At the largest size, each bit array alone requires about 125 MB, before vocabulary and interpreter overhead. I used three workers rather than launching all 69 configurations at once. I did not measure a serial-versus-parallel speedup. The supplied `_get_hashes` computes all three digests before slicing, so fewer selected hashes do not eliminate those digest computations.
 
 **Final experimental results:** [CSV](part2-results-parallel.csv). The notebook contains the exact parameter grid and plotting code; the [checkpoint](part2-results-parallel.checkpoint.json) supports resuming with matching local inputs and code.
 
@@ -129,7 +174,7 @@ The six lines connect measured values on a logarithmic horizontal axis; no smoot
 The saved empirical results bracket the 85% Good Suggestion threshold as follows:
 
 | Hash count | Last tested point below 85% | First tested point at or above 85% | Observed crossing interval (bits) |
-| --- | --- | --- | --- |
+| ---: | ---: | ---: | ---: |
 | 1 | 100,000,000 bits: 73.412% | 500,000,000 bits: 87.670% | 100,000,000–500,000,000 |
 | 2 | 20,000,000 bits: 84.784% | 23,000,000 bits: 86.160% | 20,000,000–23,000,000 |
 | 3 | 9,000,000 bits: 81.496% | 11,000,000 bits: 85.932% | 9,000,000–11,000,000 |
@@ -138,7 +183,7 @@ Among the tested configurations, the smallest sizes achieving at least 85% are t
 
 ### 2. Combinatorial Explosion & Mutation Spaces (Edit Distance vs. K-mers)
 
-Our single-character substitution implementation generates `25L` candidates for a lowercase word of length `L`, since it excludes replacing a character with itself. Part 2 separately considers the unchanged word once. Allowing two edits greatly expands the search: even exactly two substitutions at different positions produce `C(L, 2) * 25**2` distinct strings. For a six-letter word, this is 9,375 candidates, compared with 150 for one substitution. Insertions, deletions, and adjacent transpositions add further possibilities, and different edit paths can generate the same string, requiring deduplication. With edit distance fixed at two, the naive candidate-generation scale is roughly quadratic in word length for a fixed alphabet, rather than exponential in length. The branching search grows rapidly, approximately exponentially in permitted edit depth before accounting for duplicate paths, when the allowed number of edits increases.
+My single-character substitution implementation generates `25L` candidates for a lowercase word of length `L`, since it excludes replacing a character with itself. Part 2 separately considers the unchanged word once. Allowing two edits greatly expands the search: even exactly two substitutions at different positions produce `C(L, 2) * 25**2` distinct strings. For a six-letter word, this is 9,375 candidates, compared with 150 for one substitution. Insertions, deletions, and adjacent transpositions add further possibilities, and different edit paths can generate the same string, requiring deduplication. With edit distance fixed at two, the naive candidate-generation scale is roughly quadratic in word length for a fixed alphabet, rather than exponential in length. The branching search grows rapidly, approximately exponentially in permitted edit depth before accounting for duplicate paths, when the allowed number of edits increases.
 
 More absent candidates mean more opportunities for false positives. If `Q` queried candidates are absent and each has approximately false-positive probability `p`, the expected number of false-positive candidates is about `Qp`. More queries do not by themselves increase the filter's per-query false-positive probability, but they increase total false-positive overhead and computational work. A separate issue is genuine vocabulary ambiguity: many English words are only one or two edits apart. Even a perfect membership test can return more than three real words, failing the Good Suggestion criterion without any Bloom filter false positives. Expanding the edit radius can also recover previously unreachable correct answers, so the net effect on Good Suggestion Rate is not guaranteed to be negative; it balances better coverage against longer, more ambiguous lists.
 
@@ -156,7 +201,7 @@ They also do not make this vocabulary confidential. As discussed in Part 1, an a
 
 ---
 
-## Studio 3 — Code evolution and design choices
+## Code evolution and design choices
 
 I began with the supplied Bloom filter and used nested loops to generate single-character substitutions. I excluded the original letter at each position and queried candidates as they were generated, keeping only those that passed. This avoided storing the full candidate set, at the cost of regenerating it for each filter configuration. An initial test used `floter` instead of `floeer`; correcting the input resolved the mismatch with the exercise's example outputs.
 
@@ -164,11 +209,11 @@ For Part 2, I separated the two metric denominators: misidentification uses only
 
 After running the metrics for a fixed filter size, I expanded the experiment to compare filter sizes and hash counts. With Codex's help, I used a three-worker process pool to evaluate independent configurations. Each worker builds its own filter, while the main process collects results and saves progress. I retained completed configurations through a checkpoint, so adding parameter points did not require restarting the entire sweep. This made repeated refinement practical, although each worker needs its own memory and no serial-versus-parallel speedup was measured.
 
-I increased the grid to 23 filter sizes, adding points around the transitions and extending it to 500 million and one billion bits to observe the one-hash curve approaching its plateau. I combined both metrics into one graph with six lines and widened the figure for readability. The logarithmic axis accommodates the large size range, and the lines connect actual observations without smoothing. Saved CSV results let me revise the graph without rerunning the experiment. I reported the 85% crossing intervals and first qualifying measured sizes rather than claiming exact thresholds between sampled points.
+I increased the grid to 23 filter sizes, adding points around the transitions and extending it to 500 million and one billion bits to observe the one-hash curve approaching its plateau. I combined both metrics into one graph with six lines to make the comparison easier to read. The logarithmic axis accommodates the large size range, and the lines connect actual observations without smoothing. Saved CSV results let me revise the graph without rerunning the experiment. I reported the 85% crossing intervals and first qualifying measured sizes rather than claiming exact thresholds between sampled points.
 
 In interpreting the results, I distinguished Bloom filter false positives from genuine ambiguity among similar words. More real-word candidates can violate the three-suggestion limit even when membership checks are accurate. I also separated the performance requirements of ordinary membership filtering from the security properties of cryptographic hashing. The final graph's plateau is observed, but I have not performed a case-by-case analysis to establish its exact causes or benchmarked replacement hash algorithms.
 
-## Studio 3 — AI assistance
+## AI assistance
 
 I used OpenAI Codex to assist with code generation, README writing, debugging, and code maintenance. We discussed candidate generation, metric denominators, handling correctly spelled inputs without using the answer, parallel execution, checkpoint reuse, graph design, and the interpretation of capacity thresholds. I ran the full experiment, expanded the parameter grid, and reviewed the outputs. I contributed the reasoning about genuine-word ambiguity and hashing trade-offs; Codex helped refine the complexity terminology and explain k-mers and cryptographic hash properties where I needed guidance.
 
