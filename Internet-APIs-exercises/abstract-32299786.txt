@@ -1,0 +1,9 @@
+BACKGROUND: Mycoplasma pneumoniae is one of the major pathogens causing community-acquired pneumonia in children. Although usually self-limited, Mycoplasma pneumoniae pneumonia (MPP) may lead to complicated morbidity that can even be life-threatening. Upon MPP infection, alveolar macrophage becomes attracted and activated and will induce subsequent cytokine and chemokine reaction. Refractory Mycoplasma pneumoniae pneumonia (RMPP) is manifested by clinical or radiological deterioration despite proper antibiotic therapy. RMPP is characterized with excessive inflammation and may need subsequent glucocorticoid treatment.
+
+AIM: The aim of this study was to investigate the change of plasma chemokines in non-refractory Mycoplasma pneumoniae pneumonia (NRMPP) and RMPP before and after antibiotic or methylprednisolone treatment.
+
+METHOD: A total of 42 children with MPP were enrolled in this study. Plasma specimens were collected at admission and one to two weeks after antibiotic or methylprednisolone treatment with declined fever. Plasma specimens were then indicated to chemokines detection.
+
+RESULTS: Mycoplasma pneumoniae pneumonia altered the chemokine profile through the observation of decreased plasma M1 related chemokines (CCL2, CCL8 and CXCL10) and increased M2 related chemokines (CCL17 and CCL22) after treatment.When the patients were divided into RMPP and NRMPP groups and the chemokines before treatment were compared, the RMPP group showed higher CXCL10 but lower CCL3 and CCL11 than the NRMPP group.
+
+CONCLUSION: Unique changes in macrophage related chemokines is observed in the course of MPP infection. NRMPP and RMPP infection in children showed distinct manifestation in chemokine profiles.

@@ -9,6 +9,7 @@
 - [Studio 1 — Standards exercises](standard-exercises/README.md)
 - [Studio 2 — Data structures and analysis of algorithms](dsaa-exercises/README.md)
 - [Studio 3 — Big Data](big-data-exercises/README.md)
+- [Studio 4 — Internet and APIs](Internet-APIs-exercises/README.md)
 
 ## Organization
 
