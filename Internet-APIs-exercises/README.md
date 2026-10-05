@@ -218,11 +218,6 @@ Verification inspected the saved XML, confirmed record identity and hierarchy,
 and counted the elements summarized above. The saved response is a snapshot;
 future PubMed metadata may change.
 
-### References
-
-- [NCBI EFetch parameters](https://www.ncbi.nlm.nih.gov/sites/books/NBK25499/)
-- Assignment: *Internet and APIs*, Exercise 1, pages 1–3.
-
 ### Exercise 1 — Code evolution and design choices
 
 I worked through this exercise in stages: retrieving a record by PMID,
@@ -362,14 +357,6 @@ also honor that delay. A secondary-limit response can occur even with a
 nonzero primary budget; I would reduce request frequency and use bounded
 backoff instead of repeated immediate retries. The current script propagates
 HTTP errors and does not implement automatic waiting, retries, or resumption.
-
-### Sources and verification
-
-- [GitHub user endpoints](https://docs.github.com/en/rest/users/users)
-- [GitHub repository endpoints](https://docs.github.com/en/rest/repos/repos)
-- [Pagination](https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api)
-- [Rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
-- [API best practices](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api)
 
 ### Exercise 2 — Code evolution and design choices
 
