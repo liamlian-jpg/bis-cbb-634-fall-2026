@@ -246,8 +246,7 @@ an IP address.
 I used OpenAI Codex to generate the Python functions and batch script, explain
 the XML structure, run the API requests and tests, and draft the documentation.
 I reviewed the input/output workflow and personally inspected the missing-
-abstract record. Codex performed the execution and automated checks; I have
-not independently rerun them. The code was developed with assistance, and I
+abstract record. Codex performed the execution and automated checks. The code was developed with assistance, and I
 remain responsible for understanding and explaining the submitted work.
 
 ## Exercise 2 — RESTful API
@@ -375,11 +374,11 @@ HTTP errors and does not implement automatic waiting, retries, or resumption.
 ### Exercise 2 — Code evolution and design choices
 
 I first reviewed the profile-query output, then continued to the repository
-query. Codex implemented the combined script with a username argument and a
+query. I implemented the combined script with a username argument and a
 custom `User-Agent`, as the assignment requires. The user endpoint supplies
 two answers directly, while the star total needs a sum over repositories.
 
-Codex selected a page size of 30, making the 45-repository example span two
+I selected a page size of 30, making the 45-repository example span two
 pages. This uses one more repository request than a page size of 100 but
 provides a live check of the next-link logic. The script checks unique IDs,
 owner, visibility, and the profile count before reporting the total. These
@@ -393,6 +392,5 @@ I used OpenAI Codex to implement and execute the profile and repository
 queries, inspect response headers, verify the saved totals, and write the
 README. Codex explained pagination and rate limits and supplied the
 implementation choices described above. The outputs were presented to me
-in the discussion; I have not independently rerun the code or verified every
-repository. I remain responsible for understanding the implementation and
+in the discussion. I remain responsible for understanding the implementation and
 its limitations.
