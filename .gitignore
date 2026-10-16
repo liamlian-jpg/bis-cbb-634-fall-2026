@@ -231,3 +231,10 @@ __marimo__/
 # Studio 3 course inputs: obtain from the assignment
 /big-data-exercises/words.txt
 /big-data-exercises/typos.json
+
+# Data exploration: local course inputs and generated data stores
+/data-exploration-exercises/papers.json
+/data-exploration-exercises/embeddings.db
+/data-exploration-exercises/papers_*.json
+/data-exploration-exercises/embeddings_*
+/data-exploration-exercises/embedding_manifest_*.json

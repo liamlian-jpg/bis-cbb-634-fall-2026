@@ -11,6 +11,8 @@
 - [Studio 3 — Big Data](big-data-exercises/README.md)
 - [Studio 4 — Internet and APIs](Internet-APIs-exercises/README.md)
 
+- [Data exploration 2 — PubMed embeddings and PCA](data-exploration-exercises/README.md)
+
 ## Organization
 
 Studio 1 exercises share the `standard-exercises/` folder. Their notebooks, README, figures, helper scripts, and required local data live directly in that folder, without additional subfolders. The structure can be revised if the portfolio grows.
