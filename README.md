@@ -10,8 +10,7 @@
 - [Studio 2 — Data structures and analysis of algorithms](dsaa-exercises/README.md)
 - [Studio 3 — Big Data](big-data-exercises/README.md)
 - [Studio 4 — Internet and APIs](Internet-APIs-exercises/README.md)
-
-- [Data exploration 2 — PubMed embeddings and PCA](data-exploration-exercises/README.md)
+- [Studio 5 — Data Exploration 2: PubMed Pipeline, Embeddings, and PCA](data-exploration-exercises/README.md)
 
 ## Organization
 
@@ -20,3 +19,7 @@ Studio 1 exercises share the `standard-exercises/` folder. Their notebooks, READ
 Studio 2 exercises share the `dsaa-exercises/` folder and one README. Exercise 1 (1a–1h) covers XML patient data, binary search, and age/gender range queries. Exercise 2 (2a–2c) covers sorting algorithms, runtime benchmarks, log-log analysis, and algorithm selection. Both exercises are complete and documented with notebooks, outputs, and design explanations. The folder also contains figures, saved benchmark results, and a standalone validation script with synthetic test inputs. The course XML input remains local.
 
 Studio 3 covers Bloom filter spelling suggestions, a resumable parallel evaluation of 69 configurations, and a combined performance graph. Its README documents reconstruction leakage, metric definitions, capacity thresholds, expanded edit spaces, and cryptographic versus non-cryptographic hashing. The folder includes the notebook, worker module, final CSV, checkpoint, and figure.
+
+Studio 4 uses the `Internet-APIs-exercises/` folder for PubMed XML retrieval and abstract processing, plus GitHub REST API queries for user metadata and repository star totals. It includes Python scripts, validation code, saved XML/text/CSV/JSON results, and a README describing the API workflow and findings.
+
+Studio 5 uses the `data-exploration-exercises/` folder for exploring the supplied 2023 PubMed embeddings and building a configurable 2025 literature-retrieval, SPECTER embedding, and PCA pipeline. It includes the working notebook, six component-pair plots, an interactive 3D plot, the saved search record, and a README with results, discussion, design choices, and AI assistance. Course input data and generated embedding databases remain local.
