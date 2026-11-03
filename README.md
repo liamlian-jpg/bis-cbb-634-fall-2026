@@ -11,6 +11,7 @@
 - [Studio 3 — Big Data](big-data-exercises/README.md)
 - [Studio 4 — Internet and APIs](Internet-APIs-exercises/README.md)
 - [Studio 5 — Data Exploration 2: PubMed Pipeline, Embeddings, and PCA](data-exploration-exercises/README.md)
+- [Studio 6 — Calculus and iterative algorithms](calculus-iterative-exercises/README.md)
 
 ## Organization
 
