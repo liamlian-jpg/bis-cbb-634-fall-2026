@@ -1,0 +1,25 @@
+{
+  "dataset": "egfr_myc_large_network.csv",
+  "dataset_sha256": "150ac54b98a7cb04170a4094b66362f97fbce70fb95396d78b94a86dad2a7746",
+  "node_count": 81,
+  "edge_count": 141,
+  "source": "EGFR",
+  "target": "MYC",
+  "minimum_latency_minutes": 7.5,
+  "co_optimal_path_count": 4,
+  "bottlenecks": [
+    "AKT1",
+    "PDK1",
+    "PIK3CA"
+  ],
+  "epsilon_minutes": 1e-06,
+  "enumerated_path_count": 19,
+  "validation_tests_run": 11,
+  "validation_tests_passed": true,
+  "versions": {
+    "python": "3.13.5",
+    "pandas": "2.2.3",
+    "matplotlib": "3.10.0",
+    "networkx": "3.4.2"
+  }
+}

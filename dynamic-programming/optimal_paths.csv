@@ -1,0 +1,5 @@
+Path,Latency (minutes)
+EGFR -> GAB1 -> PIK3CA -> PDK1 -> AKT1 -> GSK3B -> MYC,7.5
+EGFR -> GAB1 -> PIK3CA -> PDK1 -> AKT1 -> MTOR -> MYC,7.5
+EGFR -> GRB2 -> SOS1 -> PIK3CA -> PDK1 -> AKT1 -> GSK3B -> MYC,7.5
+EGFR -> GRB2 -> SOS1 -> PIK3CA -> PDK1 -> AKT1 -> MTOR -> MYC,7.5
