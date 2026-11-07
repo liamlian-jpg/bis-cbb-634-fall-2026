@@ -12,7 +12,7 @@
 - [Studio 4 — Internet and APIs](Internet-APIs-exercises/README.md)
 - [Studio 5 — Data Exploration 2: PubMed Pipeline, Embeddings, and PCA](data-exploration-exercises/README.md)
 - [Studio 6 — Calculus and iterative algorithms](calculus-iterative-exercises/README.md)
-- [Dynamic programming — EGFR-to-MYC signaling](dynamic-programming/README.md)
+- [Dynamic Programming — EGFR-to-MYC Signaling](dynamic-programming/README.md) · [Executed notebook](dynamic-programming/dp.ipynb)
 
 ## Organization
 
@@ -26,4 +26,4 @@ Studio 4 uses the `Internet-APIs-exercises/` folder for PubMed XML retrieval and
 
 Studio 5 uses the `data-exploration-exercises/` folder for exploring the supplied 2023 PubMed embeddings and building a configurable 2025 literature-retrieval, SPECTER embedding, and PCA pipeline. It includes the working notebook, six component-pair plots, an interactive 3D plot, the saved search record, and a README with results, discussion, design choices, and AI assistance. Course input data and generated embedding databases remain local.
 
-Dynamic programming uses the `dynamic-programming/` folder for forward/reverse DAG sweeps, co-optimal pathway counts, and bottleneck identification in the synthetic EGFR-to-MYC network. It includes the executed notebook, implementation, network figures, saved results, validation, and analytical answers. The original Canvas PDF and input CSV remain local.
+Dynamic programming is complete in `dynamic-programming/`, with custom forward and reverse DAG sweeps, network visualizations, and answers to all four analytical questions. The synthetic EGFR-to-MYC network has a minimum latency of **7.50 minutes**, **4 co-optimal paths**, and three intermediate bottlenecks: **AKT1, PDK1, and PIK3CA**. The [executed notebook](dynamic-programming/dp.ipynb) and [saved results](dynamic-programming/results.json) are supported by 11 passing validation tests, including exact-decimal path enumeration. The exercise README records the iterative development choices and AI assistance. The original Canvas PDF and input CSV remain local.
