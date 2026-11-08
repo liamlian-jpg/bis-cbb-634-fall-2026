@@ -1,0 +1,4 @@
+state,returned_date,previous_total,peak_total,difference,matches_independent_scan
+Connecticut,2022-01-10,573711,605116,31405,True
+New York,2022-01-08,3966952,4057084,90132,True
+Florida,2022-01-04,4166392,4360178,193786,True

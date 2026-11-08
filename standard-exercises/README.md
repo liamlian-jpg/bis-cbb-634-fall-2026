@@ -16,6 +16,7 @@ The analysis loads cumulative state-level counts, calculates daily reported chan
 - [Jupyter notebook](studio-01-covid.ipynb): executable Python code and saved outputs for tasks 1a–1e.
 - [Overlaid state plot](daily_cases.png).
 - [Florida plot](florida_daily_cases.png).
+- [Annotated peak verification](peak-date-validation.png) and [independent checks](peak-date-validation.csv).
 - [Data download helper](download_data.py): retrieves and verifies the input file.
 
 The notebook is the maintained analysis source. The supplied assignment does not explicitly require a `.py` extension; its references to code and scripts are implemented here as Python notebook cells.
@@ -53,13 +54,21 @@ These are absolute reported changes, not population-adjusted rates. Reporting de
 
 `find_peak_date(data, state)` selects the date of the largest daily change. Sorting by date means ties resolve to the earliest occurrence. `compare_peak_dates(data, state1, state2)` compares the two dates and returns the absolute number of elapsed days while printing which state peaked first.
 
-| State | Peak report date | Daily reported change |
-| --- | --- | ---: |
-| Connecticut | 2022-01-10 | 31,405 |
-| New York | 2022-01-08 | 90,132 |
-| Florida | 2022-01-04 | 193,786 |
+| State | Returned peak date | Previous cumulative total | Peak-date cumulative total | Difference (cases) |
+| --- | --- | ---: | ---: | ---: |
+| Connecticut | 2022-01-10 | 573,711 | 605,116 | 31,405 |
+| New York | 2022-01-08 | 3,966,952 | 4,057,084 | 90,132 |
+| Florida | 2022-01-04 | 4,166,392 | 4,360,178 | 193,786 |
 
-The notebook's Connecticut–Florida example finds that **Florida peaked 6 days before Connecticut**. This comparison concerns peaks in reported increments; it does not establish the ordering of actual infection peaks.
+### How the peak dates are verified
+
+The validation cell independently subtracts consecutive cumulative totals with a Python loop over each state's **entire time series**. It finds the largest difference and its earliest date without using `daily_cases` or `idxmax()`, then asserts that both the date and value match the function. All three states pass; the table above is saved in [peak-date-validation.csv](peak-date-validation.csv).
+
+![Returned peak dates marked on 29-day windows for Connecticut, New York and Florida](peak-date-validation.png)
+
+The black points and dashed lines place each returned date at the highest point in its panel. These zoomed plots provide the visual cross-check; the full-history scan establishes that no larger increment exists elsewhere in the dataset. For example, Connecticut's January 10 increment is 605,116 − 573,711 = **31,405 cases**, matching the labeled peak.
+
+Hand-calculated fixtures additionally check tied maxima (return the earliest date), shuffled source rows followed by chronological preparation, missing first differences within each state, negative revisions, two states peaking on the same date, and absent or single-record states. Assertions pass, including the real-data comparison: **Florida peaked 6 days before Connecticut**. This compares reported increments, not the dates of actual infection peaks.
 
 ## Florida anomalies — 1e
 
@@ -82,6 +91,8 @@ I pass the prepared DataFrame into the functions, so the preparation cell must r
 ## AI assistance
 
 I used OpenAI Codex to assist with code generation, README writing, and code maintenance. I also discussed some ideas with Codex during development. I made the overall decisions, selected the chart types in line with the assignment requirements, and developed the substantive answers and interpretations. Codex helped implement and express these choices, while I retained responsibility for the final work.
+
+For the portfolio-feedback revision, Codex added and executed the independent cumulative-count checks, synthetic tests, and annotated peak plots, and updated the explanation. This assisted validation does not represent an independent rerun by me.
 
 ## Exercise 2 — Population Data
 

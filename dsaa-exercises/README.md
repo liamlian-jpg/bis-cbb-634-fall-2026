@@ -342,7 +342,7 @@ I used OpenAI Codex to help implement these choices, explain binary-search bound
 
 ### Code and reproduction
 
-[Exercise 2 notebook](studio-02-algorithm-analysis.ipynb) contains the supplied algorithms, data generators, the 2a output analysis, and the 2b benchmark. With NumPy and Jupyter installed, open the notebook, restart the kernel, and run all cells in order. No patient dataset is required.
+[Exercise 2 notebook](studio-02-algorithm-analysis.ipynb) contains the supplied algorithms, data generators, the 2a output analysis, and the 2b benchmark. With NumPy, pandas, matplotlib and Jupyter installed, open the notebook, restart the kernel, and run all cells in order. No patient dataset is required.
 
 ### 2a — Output analysis
 
@@ -407,184 +407,69 @@ For n = 4, the recursion has 1 + 2 + 4 = 7 calls, but a call's cost depends on t
 
 #### Method
 
-I benchmarked both algorithms on `data1`, `data2`, and `data3` at eight logarithmically spaced input sizes: **100, 153, 235, 360, 553, 848, 1301, and 1995**. For each input, I warmed up both algorithms, measured five runs with `time.perf_counter()`, and reported the median. The execution order alternates between repeats to reduce order effects.
+The revised benchmark measures **13 logarithmically spaced sizes from n=10 to n=10,000**, spanning three full orders of magnitude. The original range, 100–1,995, covered only about 1.3 orders. Each algorithm is warmed up and timed five times per dataset and size with `time.perf_counter()`; the graph reports medians and execution order alternates between repeats.
 
-Data generation, the external input copy, the reference `sorted()` result, and correctness checks are outside the timed block. The timed call includes the algorithm's own work, including copying inside `alg1` and slicing inside `alg2`. Both algorithms receive the same values for a given generator and n.
+Data generation, the external input copy, the reference `sorted()` result, and correctness checks are outside the timer. The algorithm's own copying and slicing remain inside. Both algorithms receive identical values for a given dataset and n. Every one of the **390 timed results** matched `sorted()`; ten additional known-case checks cover empty, singleton, duplicate, negative, sorted and reversed inputs.
 
-#### Benchmark code
+The notebook contains the complete benchmark. Its essential timing block is:
 
 ```python
-import time
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-# Start with moderate sizes because alg1 can be slow.
-sizes = np.unique(np.logspace(2, 3.3, num=8).astype(int))
+sizes = np.unique(np.rint(np.logspace(1, 4, num=13)).astype(int))
 repeats = 5
 
-generators = {
-    "data1": data1,
-    "data2": data2,
-    "data3": data3,
-}
-
-algorithms = {
-    "alg1": alg1,
-    "alg2": alg2,
-}
-
-records = []
-
-for data_name, generator in generators.items():
-    for n in sizes:
-        # Generate the same input for both algorithms outside timing.
-        test_data = generator(int(n))
-        expected = sorted(test_data)
-
-        timings = {name: [] for name in algorithms}
-
-        # Warm up each algorithm outside timing.
-        for algorithm in algorithms.values():
-            assert algorithm(test_data.copy()) == expected
-
-        for repeat in range(repeats):
-            # Alternate execution order to reduce order effects.
-            order = list(algorithms.items())
-            if repeat % 2 == 1:
-                order.reverse()
-
-            for algorithm_name, algorithm in order:
-                input_copy = test_data.copy()
-
-                start = time.perf_counter()
-                result = algorithm(input_copy)
-                elapsed = time.perf_counter() - start
-
-                # Check correctness outside timing.
-                assert result == expected
-
-                timings[algorithm_name].append(elapsed)
-
-        for algorithm_name, measured_times in timings.items():
-            records.append({
-                "dataset": data_name,
-                "n": int(n),
-                "algorithm": algorithm_name,
-                "median_seconds": float(np.median(measured_times)),
-            })
-
-results = pd.DataFrame(records)
-
-display(
-    results.pivot(
-        index=["dataset", "n"],
-        columns="algorithm",
-        values="median_seconds",
-    )
-)
-
-# Plot one panel for each data generator.
-fig, axes = plt.subplots(1, 3, figsize=(16, 5))
-
-for ax, data_name in zip(axes, generators):
-    for algorithm_name in algorithms:
-        subset = results[
-            (results["dataset"] == data_name)
-            & (results["algorithm"] == algorithm_name)
-        ].sort_values("n")
-
-        ax.loglog(
-            subset["n"],
-            subset["median_seconds"],
-            marker="o",
-            label=algorithm_name,
-        )
-
-    ax.set_title(data_name)
-    ax.set_xlabel("Input size (n)")
-    ax.set_ylabel("Median execution time (seconds)")
-    ax.grid(True, which="both", alpha=0.3)
-    ax.legend()
-
-fig.suptitle("Algorithm Runtime Comparison")
-plt.tight_layout()
-plt.show()
-
-# Estimate the slope over the measured range.
-slope_records = []
-
-for data_name in generators:
-    for algorithm_name in algorithms:
-        subset = results[
-            (results["dataset"] == data_name)
-            & (results["algorithm"] == algorithm_name)
-        ].sort_values("n")
-
-        slope, intercept = np.polyfit(
-            np.log10(subset["n"]),
-            np.log10(subset["median_seconds"]),
-            deg=1,
-        )
-
-        slope_records.append({
-            "dataset": data_name,
-            "algorithm": algorithm_name,
-            "estimated_slope": slope,
-        })
-
-slopes = pd.DataFrame(slope_records)
-display(slopes)
+# Inside the dataset/size/repeat loops, with input and expected output prepared:
+input_copy = test_data.copy()
+start = time.perf_counter()
+result = algorithm(input_copy)
+elapsed = time.perf_counter() - start
+assert result == expected
 ```
 
-#### Saved results
+#### Measured results
 
-![Runtime comparison on log-log axes](algorithm-runtime-comparison.png)
+![Three log-log panels comparing both algorithms from 10 to 10000 elements](algorithm-runtime-comparison.png)
 
-The [saved timing and slope tables](benchmark-results.txt) are extracted from the notebook's original saved run. Timings will vary between runs and machines.
+[Raw repeated timings](benchmark-runs.csv), [median timings](benchmark-medians.csv), [slope estimates](benchmark-slopes.csv), and the [run record with environment details](benchmark-results.txt) are saved alongside the executed notebook. These are new measurements from the expanded experiment; timings vary by machine and run. Each panel has its own vertical range, so compare tick values across panels.
 
-| Dataset | alg1 estimated slope | alg2 estimated slope |
-| --- | ---: | ---: |
-| data1 | 2.079412 | 1.062627 |
-| data2 | 1.013919 | 1.050273 |
-| data3 | 2.069037 | 1.041350 |
+| Dataset | Algorithm | Full-range slope (10–10,000) | Large-n slope (1,000–10,000) |
+| --- | --- | ---: | ---: |
+| data1 | alg1 | 2.377 | 2.112 |
+| data1 | alg2 | 1.069 | 1.074 |
+| data2 | alg1 | 0.956 | 1.042 |
+| data2 | alg2 | 1.051 | 1.039 |
+| data3 | alg1 | 2.031 | 2.026 |
+| data3 | alg2 | 1.046 | 1.036 |
 
-#### Interpreting the log-log plot
+#### Interpreting the slopes
 
-Both axes use logarithmic scales: equal distances correspond to equal ratios, not equal absolute increases. A straight line on these axes suggests a power-law relationship over the measured range, not exponential growth. If T(n) = C n^p, then log T(n) = log C + p log n, so the slope estimates p. A slope near 1 means that a tenfold increase in n corresponds to roughly tenfold time; a slope near 2 means roughly a hundredfold time.
+For `T(n) = C n^p`, taking logs gives `log T(n) = log C + p log n`: the slope estimates the power p over the measured interval. A slope near 1 corresponds to roughly 10 times the runtime for 10 times the input; a slope near 2 corresponds to roughly 100 times. A straight line on log-log axes indicates power-law scaling, not exponential growth.
 
-At the same n, a lower curve indicates faster execution; a steeper curve indicates faster growth in time as n increases. The three panels use different vertical ranges, so cross-panel comparisons require reading the tick values.
+The expanded graph also shows why a single fitted exponent can mislead. The supplied `data1` generator returns already sorted values at n=10, 18 and 32, so alg1 exits after one scan. At n=56 the input is no longer sorted and the curve jumps. The full-range slope of **2.377** mixes this transition with subsequent growth; it does not imply worse-than-quadratic asymptotic complexity. Over the five largest sizes, its slope is **2.112**, consistent with repeated scans approaching quadratic growth.
 
-For data1 and data3, alg1's slopes are near 2, consistent with its repeated-scan quadratic behavior. For already sorted data2, its slope is near 1, consistent with exiting after one scan. alg2's slopes are near 1 in this finite experiment. They do not establish O(n) complexity: its divide-and-merge structure remains O(n log n), and the logarithmic factor grows slowly. Runtime overhead, input sizes, and implementation details affect fitted slopes. These empirical results support interpretation alongside the code; fitted slopes alone do not prove Big-O bounds.
+For sorted `data2`, alg1's large-n slope is **1.042**, consistent with O(n). For reverse-sorted `data3`, it is **2.026**, consistent with O(n²). alg2's large-n slopes are **1.074, 1.039 and 1.036** for data1–data3. These near-linear slopes do not establish O(n): its O(n log n) divide-and-merge work includes a slowly varying logarithmic factor. Small timings are sensitive to overhead and clock resolution; even the larger-n fits describe a finite range, not a proof of Big-O bounds.
 
 ### 2c — Evaluation and data-dependent behavior
 
-#### Why neither algorithm is always faster
+alg1 repeatedly scans adjacent elements until a pass makes no swaps. Already sorted `data2` needs one O(n) scan. Reverse-sorted `data3` requires O(n) scans because a small value can move left only one position per pass, giving O(n²) work. Longer `data1` inputs also require repeated scans; the small sorted prefixes explain its initial fast segment. Thus input order changes alg1's execution path, not just a constant in its runtime.
 
-The measured performance depends on the input order and the work each algorithm performs. For already sorted `data2`, alg1 finishes after one scan with no swaps. This is O(n), consistent with the fitted slope of 1.013919, and it is faster than alg2 in this experiment.
+alg2 recursively divides and merges every input, performing O(n) work per level across O(log n) levels. Comparison counts and constants depend on ordering, but its O(n log n) growth applies to all three datasets. This explains the widening advantage over alg1 on large unsorted inputs and its extra overhead on sorted data2.
 
-For `data1` and reverse-sorted `data3`, alg1 requires repeated scans and swaps. Their fitted slopes, 2.079412 and 2.069037, are close to quadratic growth. As n increases, the performance gap in favor of alg2 becomes larger. The irregular ordering in data1 affects how many passes are needed; descending data3 requires many passes because small elements can move left only one position per pass in this implementation.
-
-alg2 divides and merges the input regardless of whether it is initially sorted. Its O(n log n) structure is relatively insensitive to input order, although the precise comparison counts and measured times can still vary. It does not exploit already sorted input by stopping after a single scan, which explains why alg1 wins on data2. These observations connect the empirical plots to the underlying mechanics rather than assuming that one algorithm must always be faster.
-
-#### My choice for real-world inputs
-
-Between these two algorithms, I would choose **alg2** when the input order is unknown or varies. Its performance is less sensitive to input order, making runtime growth more predictable as the dataset increases in size. This means a more predictable scaling trend, not identical elapsed times on every run.
-
-If the input is known to be already sorted, alg1 can be preferable because its early-exit condition terminates after one scan, as demonstrated by data2. My preference for alg2 applies to general inputs with uncertain ordering, not to every possible data condition.
+For inputs with unknown or changing order, I would choose **alg2** for its more predictable scaling. If the input is guaranteed to be sorted, no sorting is needed. If order must first be checked, a single linear validation pass suffices; alg1's advantage on data2 illustrates early exit, rather than a reason to sort data already known to be ordered.
 
 ### Exercise 2 — Code evolution and design choices
 
 I traced alg1's swap flag and recognized that any swap triggers another full scan, leading to quadratic worst-case behavior. For alg2, I worked through splitting, recursion, iterator advancement, and exhaustion handling. I drew the decomposition of `[4, 1, 3, 2]`, followed by merging into `[1, 4]`, `[2, 3]`, and finally `[1, 2, 3, 4]`. I distinguished the geometric growth in function-call counts from the work performed per call, which explains the O(n log n) total.
 
-For output analysis, I chose small inputs from the supplied generators to connect the functionality checks with the later benchmarking tasks. The generator definitions were added to the saved notebook so it can run after a kernel restart without relying on previous session state.
+For output analysis, I chose small inputs from the supplied generators to connect the functionality checks with the later benchmarking tasks. The feedback revision restores the assignment-provided generator definitions to the notebook, making the inputs reproducible without prior kernel state.
 
 I initially interpreted the log-log plot as potentially indicating exponential growth. I then distinguished the logarithmic axis scale from the runtime relationship: the slope estimates a power exponent over the tested range. I connected the near-2 slopes of alg1 on data1 and data3, and its near-1 slope on sorted data2, with the number of scans required.
 
-For 2c, I connected the different execution times to input order and chose alg2 for inputs with unknown or changing order because its runtime growth is more predictable. I retained the already-sorted case as an exception where alg1 benefits from its early exit.
+For 2c, I connected the different execution times to input order and chose alg2 for inputs with unknown or changing order because its runtime growth is more predictable. The revised recommendation distinguishes verifying order from sorting data already known to be ordered.
 
-### Exercise 2 — Validation and AI assistance
+The initial benchmark used moderate sizes to keep alg1 affordable, but its range was too narrow to show behavior across several orders of magnitude. In the feedback revision, Codex extended the grid to 10–10,000, retained five repeats and correctness assertions, and saved raw timings as well as medians. Reporting both full-range and large-n fits exposes data1's transition from sorted prefixes to repeated-scan behavior instead of treating one fitted slope as a complexity proof.
 
-The algorithm definitions, restored generator definitions, and 2a test cell executed in order in a fresh Python namespace. Both algorithms matched `sorted()` for each of the three generated inputs; the output above is captured from that execution. The 2b tables and figure were verified against saved notebook outputs; the benchmark was not rerun for this documentation update, preserving the measured results discussed in class. Its timed runs include correctness assertions.
+### Exercise 2 — AI assistance
 
-I used OpenAI Codex to help explain the algorithms, prepare the output-analysis code, verify execution, and document my reasoning. My discussion and hand-drawn recursion trace informed the conceptual explanation.
+I used OpenAI Codex to help explain the algorithms, prepare output-analysis code, verify execution, and document my reasoning. My earlier discussion and hand-drawn recursion trace informed the conceptual explanation.
+
+For this feedback revision, Codex restored the generator definitions from the assignment, added known-case assertions, executed all five code cells in order in a fresh Python process, reran the expanded benchmark, and updated the plot, tables, and interpretation. The saved outputs document that assisted execution; they do not represent a new independent run or demonstration of mastery by me.

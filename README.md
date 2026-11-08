@@ -16,9 +16,9 @@
 
 ## Organization
 
-Studio 1 exercises share the `standard-exercises/` folder. Their notebooks, README, figures, helper scripts, and required local data live directly in that folder, without additional subfolders. The structure can be revised if the portfolio grows.
+Studio 1 exercises share the `standard-exercises/` folder. Their notebooks, README, figures, helper scripts, and required local data live directly in that folder, without additional subfolders. The COVID analysis includes annotated peak-date plots, an independent check against cumulative totals, and synthetic edge-case assertions.
 
-Studio 2 exercises share the `dsaa-exercises/` folder and one README. Exercise 1 (1a–1h) covers XML patient data, binary search, and age/gender range queries. Exercise 2 (2a–2c) covers sorting algorithms, runtime benchmarks, log-log analysis, and algorithm selection. Both exercises are complete and documented with notebooks, outputs, and design explanations. The folder also contains figures, saved benchmark results, and a standalone validation script with synthetic test inputs. The course XML input remains local.
+Studio 2 exercises share the `dsaa-exercises/` folder and one README. Exercise 1 (1a–1h) covers XML patient data, binary search, and age/gender range queries. Exercise 2 (2a–2c) covers sorting algorithms, runtime benchmarks, log-log analysis, and algorithm selection. Both exercises are complete and documented with notebooks, outputs, and design explanations. The folder also contains figures, saved benchmark results, and a standalone validation script with synthetic test inputs. The sorting benchmark spans n=10–10,000, saves all repeated timings, and compares full-range with large-n slopes. The course XML input remains local.
 
 Studio 3 covers Bloom filter spelling suggestions, a resumable parallel evaluation of 69 configurations, and a combined performance graph. Its README documents reconstruction leakage, metric definitions, capacity thresholds, expanded edit spaces, and cryptographic versus non-cryptographic hashing. The folder includes the notebook, worker module, final CSV, checkpoint, and figure.
 
