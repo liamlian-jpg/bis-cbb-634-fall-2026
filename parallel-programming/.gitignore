@@ -1,0 +1,13 @@
+# Earlier exploratory experiments retained locally; final 2/4/6/8 artifacts are published.
+/benchmark-history.md
+/benchmark-initial.py
+/benchmark-environment.json
+/benchmark-runs.csv
+/benchmark-summary.csv
+/benchmark-scaling.png
+/benchmark-scaling.svg
+/benchmark-workers-environment.json
+/benchmark-workers-runs.csv
+/benchmark-workers-summary.csv
+/benchmark-workers-scaling.png
+/benchmark-workers-scaling.svg

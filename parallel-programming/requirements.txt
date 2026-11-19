@@ -1,0 +1,2 @@
+# Plotting only; sorting, validation, and benchmark timing use the standard library.
+matplotlib==3.11.2

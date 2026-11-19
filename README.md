@@ -13,6 +13,7 @@
 - [Studio 5 — Data Exploration 2: PubMed Pipeline, Embeddings, and PCA](data-exploration-exercises/README.md)
 - [Studio 6 — Calculus and iterative algorithms](calculus-iterative-exercises/README.md)
 - [Studio 7 — Dynamic Programming](dynamic-programming/README.md)
+- [Parallel Programming — Merge Sort](parallel-programming/README.md)
 
 ## Organization
 
@@ -29,3 +30,5 @@ Studio 5 uses the `data-exploration-exercises/` folder for exploring the supplie
 Studio 6 uses the `calculus-iterative-exercises/` folder for a custom Explicit Euler SIR simulation and bounded gradient descent against the course simulation API. It includes Python scripts, step-size validation, parameter-sensitivity plots, a cached request ledger, multi-start optimization results, and a README with findings, design choices, and AI assistance.
 
 Studio 7 uses the `dynamic-programming/` folder for forward and reverse DAG sweeps, co-optimal pathway counts, and bottleneck identification in the synthetic EGFR-to-MYC network. It includes the executed notebook, Python scripts, network figures, saved results, validation tests, and a README with analytical answers, design choices, and AI assistance. The original Canvas PDF and input CSV remain local.
+
+Parallel Programming uses the `parallel-programming/` folder for fixed-pool Merge Sort, correctness tests, and the final 2/4/6/8-worker benchmark. It includes raw timings, summary statistics, a log-log scaling chart, and README analyses of crossover sizes, Amdahl's Law, and distributed-memory trade-offs. The original assignment and earlier experimental runs remain local.
