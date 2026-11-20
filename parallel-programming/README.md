@@ -12,8 +12,11 @@ This exercise parallelizes the previous studio's Merge Sort (`alg2`) using Pytho
 
 - [parallel_sort.py](parallel_sort.py): unchanged serial `alg2`, a two-way merge helper, and `parallel_alg2`.
 - [test_parallel_sort.py](test_parallel_sort.py): automated correctness checks against both `alg2` and Python's `sorted()`.
-- [benchmark.py](benchmark.py): reproducible timing, summary generation, and separate plotting commands.
-- Current 2/4/6/8-worker experiment: [raw timings](benchmark-workers-2468-runs.csv), [summary](benchmark-workers-2468-summary.csv), [environment](benchmark-workers-2468-environment.json), [PNG](benchmark-workers-2468-scaling.png), and [SVG](benchmark-workers-2468-scaling.svg).
+- [benchmark.py](benchmark.py): reproducible timing, summary generation, and log-log plotting.
+- [plot_speedup_extension.py](plot_speedup_extension.py): full-range and large-input speedup plots with paired-trial scatter.
+- Current experiment through 10,000,000 elements: [raw timings](benchmark-large-2468-runs.csv), [summary](benchmark-large-2468-summary.csv), [environment](benchmark-large-2468-environment.json), [PNG](benchmark-large-2468-scaling.png), and [SVG](benchmark-large-2468-scaling.svg).
+- Speedup detail: [PNG](benchmark-large-2468-speedup.png) and [SVG](benchmark-large-2468-speedup.svg).
+- Previous experiment through 1,000,000 elements: [summary](benchmark-workers-2468-summary.csv) and [environment](benchmark-workers-2468-environment.json), retained as a historical record rather than pooled with the current run.
 
 The input lists are generated reproducibly by the benchmark; no external dataset is required. Sorting, tests, and timing use only the Python standard library. Plotting requires Matplotlib, listed in [requirements.txt](requirements.txt). Run these commands from this folder:
 
@@ -25,12 +28,13 @@ python3 test_parallel_sort.py
 To repeat the current comparison without replacing recorded measurements:
 
 ```bash
-python3 benchmark.py --workers 2 4 6 8 --prefix benchmark-workers-2468-rerun
+python3 benchmark.py --workers 2 4 6 8 --sizes 100 316 1000 3162 10000 31623 100000 316228 1000000 3162278 10000000 --prefix benchmark-large-2468-rerun
 python3 -m pip install -r requirements.txt
-python3 benchmark.py --prefix benchmark-workers-2468-rerun --plot-only
+python3 benchmark.py --prefix benchmark-large-2468-rerun --plot-only
+python3 plot_speedup_extension.py --prefix benchmark-large-2468-rerun
 ```
 
-Use `python3 benchmark.py --prefix benchmark-workers-2468 --plot-only` to regenerate the current chart. The timing command refuses to overwrite existing measurements. Plotting runs separately; timing workers do not import Matplotlib. The plotting command reads worker counts from the saved data. Always pass `--workers 2 4 6 8` to collect the current comparison; the generic script's legacy default is 2 and 4.
+Use `python3 benchmark.py --prefix benchmark-large-2468 --plot-only` to regenerate the runtime/scaling chart, and `python3 plot_speedup_extension.py --prefix benchmark-large-2468` for the speedup detail. The timing command refuses to overwrite existing measurements. Plotting runs separately; timing workers do not import Matplotlib. The plotting command reads worker counts from the saved data. Pass the explicit worker counts and sizes above to collect the current comparison; the generic script defaults remain 2/4 workers and sizes through 1,000,000.
 
 The demonstration sorts `[8, 3, 7, 1, 6, 2, 5, 4]` using two workers. Execution is protected by `if __name__ == "__main__":` so spawned processes can safely import the module. Run multiprocessing calls from a guarded script rather than an interactive notebook cell.
 
@@ -122,13 +126,13 @@ Validation on November 19, 2026: all 9 test methods passed on macOS with Python 
 
 ## 1c — Benchmarking and log-log scaling analysis
 
-The final comparison uses **2, 4, 6, and 8 workers**. Only this experiment supplies the published tables, chart, and 1d calculations. Earlier experiments remain local and are not pooled with this run.
+The final comparison uses **2, 4, 6, and 8 workers**. The current tables, charts, and 1d calculations use the new experiment through 10,000,000 elements. Every size was remeasured with a contemporaneous serial baseline. The previously published one-million-element experiment is retained separately; no observations are pooled across runs.
 
 ### Method and reproducibility
 
 The recorded experiment ran on November 19, 2026, on an Apple M3 with 8 physical/logical CPU cores and 16 GiB RAM, running macOS 14.6 and Python 3.12.6 (arm64). CPU and memory specifications were read using `sysctl`; interpreter and run details are stored in the environment JSON. Worker counts describe processes, not pinned CPU cores: operating-system scheduling and background activity were not controlled.
 
-The current experiment compares the unchanged serial `alg2` with 2-worker, 4-worker, 6-worker, and 8-worker `parallel_alg2`. All five configurations were measured together in a new run; earlier serial timings were not reused. Nine sizes, rounded from `10 ** (2 + i / 2)` for `i = 0, ..., 8`, cover 100 through 1,000,000 elements. Each size/configuration has five repetitions, for 225 timed sorts. All 225 outputs matched Python's independent `sorted()` reference, and all inputs remained unchanged. Each configuration also received one untimed warmup on 10,000 elements.
+The current experiment compares the unchanged serial `alg2` with 2-worker, 4-worker, 6-worker, and 8-worker `parallel_alg2`. All five configurations were measured together in a new run; earlier serial timings were not reused. Eleven sizes, rounded from `10 ** (2 + i / 2)` for `i = 0, ..., 10`, cover 100 through 10,000,000 elements. Each size/configuration has five repetitions, for 275 timed sorts. All 275 outputs matched Python's independent `sorted()` reference, and all inputs remained unchanged. Each configuration also received one untimed warmup on 10,000 elements.
 
 Inputs are random integer lists drawn uniformly from -1,000,000,000 through 1,000,000,000. The base seed is 634; each size/repetition uses `634 + n * 1009 + repeat`, so repetitions have different reproducible data. Within a repetition, all five configurations receive independent copies of the same values. Configuration order is shuffled with a separate deterministic seed (`data_seed + 7919`), and measurements run sequentially.
 
@@ -138,57 +142,67 @@ The primary statistic is the median of five times. Runtime error bars show inclu
 
 ### Observed results
 
-![Current 2/4/6/8-worker comparison](benchmark-workers-2468-scaling.png)
+![Log-log runtimes and speedup through ten million elements](benchmark-large-2468-scaling.png)
 
-The left panel uses logarithmic axes for input size and wall-clock seconds; the right panel shows the ratio of medians against the 1×, 1.43×, and 2× reference lines. All times below are median seconds from the final experiment.
+The left panel uses logarithmic axes for input size and wall-clock seconds; the right panel shows the ratio of medians against the 1×, 1.43×, and 2× reference lines. All times below are medians from the expanded experiment, not a combination of old and new measurements.
 
-| Input size n | Serial | 2 workers | 4 workers | 6 workers | 8 workers |
+| Input size n | Serial (s) | 2 workers (s) | 4 workers (s) | 6 workers (s) | 8 workers (s) |
 |---:|---:|---:|---:|---:|---:|
-| 100 | 0.000212 | 0.107582 | 0.123548 | 0.139002 | 0.243572 |
-| 316 | 0.000739 | 0.092968 | 0.129118 | 0.108744 | 0.182794 |
-| 1,000 | 0.001919 | 0.081629 | 0.105192 | 0.117078 | 0.136712 |
-| 3,162 | 0.006594 | 0.090248 | 0.100930 | 0.110401 | 0.101062 |
-| 10,000 | 0.018959 | 0.089620 | 0.117095 | 0.091067 | 0.126455 |
-| 31,623 | 0.053414 | 0.134039 | 0.147121 | 0.113385 | 0.159174 |
-| 100,000 | 0.161436 | 0.235951 | 0.130589 | 0.155384 | 0.226928 |
-| 316,228 | 0.530417 | 0.355456 | 0.264546 | 0.333087 | 0.379940 |
-| 1,000,000 | 1.861753 | 1.151591 | 0.830460 | 0.783140 | 0.851225 |
+| 100 | 0.000111 | 0.100022 | 0.075231 | 0.084234 | 0.147124 |
+| 316 | 0.000525 | 0.080294 | 0.087279 | 0.092584 | 0.109359 |
+| 1,000 | 0.001877 | 0.066415 | 0.069541 | 0.096393 | 0.108899 |
+| 3,162 | 0.006341 | 0.077875 | 0.080676 | 0.086614 | 0.098716 |
+| 10,000 | 0.018389 | 0.078231 | 0.109882 | 0.098230 | 0.096328 |
+| 31,623 | 0.048380 | 0.090629 | 0.085217 | 0.115388 | 0.114742 |
+| 100,000 | 0.155532 | 0.150262 | 0.120002 | 0.129213 | 0.138265 |
+| 316,228 | 0.536009 | 0.350074 | 0.247767 | 0.230462 | 0.271352 |
+| 1,000,000 | 1.900762 | 1.196257 | 0.875283 | 1.089339 | 0.771125 |
+| 3,162,278 | 6.409549 | 3.586064 | 2.646144 | 2.402718 | 2.164977 |
+| 10,000,000 | 24.633972 | 12.425578 | 9.121487 | 8.209129 | 8.215352 |
 
-For n = 1,000,000, the serial median is 1.8618 seconds:
+### Full-credit and extra-credit performance
+
+At n = 10,000,000, the serial median is 24.6340 seconds:
 
 | Workers | Median (s) | Q1–Q3 (s) | Parallel / serial median | Speedup |
 |---:|---:|---:|---:|---:|
-| 2 | 1.1516 | 1.0771–1.3700 | 61.9% | 1.617× |
-| 4 | 0.8305 | 0.7945–0.8628 | 44.6% | 2.242× |
-| 6 | 0.7831 | 0.7315–0.8076 | 42.1% | 2.377× |
-| 8 | 0.8512 | 0.5981–0.9422 | 45.7% | 2.187× |
+| 2 | 12.4256 | 12.3210–12.6877 | 50.44% | 1.9825× |
+| 4 | 9.1215 | 8.5573–9.6726 | 37.03% | 2.7007× |
+| 6 | 8.2091 | 8.1609–8.4214 | 33.32% | 3.0008× |
+| 8 | 8.2154 | 7.9052–8.3079 | 33.35% | 2.9985× |
 
-Six workers have the lowest median at the largest tested input: 0.7831 seconds, a 2.377× speedup, taking about 5.7% less time than four workers and 8.0% less than eight. All four configurations meet the at-most-70% median-time criterion at this size; 4, 6, and 8 workers also meet the below-50% median-time criterion. These ratios of medians are not guarantees for every trial or claims that portfolio credit has been awarded.
+All four configurations meet the at-most-70% median-time target at the largest size. Four, six, and eight workers also meet the strictly-below-50% target for the assignment's +5-point final-portfolio extra credit. Two workers take 50.44% of serial time (1.9825×), so they do not meet the extra-credit performance threshold even though rounded values approach 2×. Meeting a measured performance threshold is not a claim that portfolio credit has been awarded.
 
-The differences among 4, 6, and 8 workers are modest relative to the observed variability. Their runtime interquartile ranges overlap, and the eight-worker times range from 0.5784 to 1.3238 seconds. The result supports "six workers had the lowest median in this run," not a statistically established or universal optimum. No trial was discarded and no favorable baseline was selected from a different experiment.
+Six workers have the numerically lowest median at ten million elements, but the difference from eight workers is only 0.00622 seconds (about 0.076%). Their interquartile ranges overlap substantially. The evidence supports near-equal observed performance at that size, not a reliable advantage of six over eight. At 3,162,278 elements, eight workers have the lowest median, illustrating that the ranking depends on input size and runtime conditions.
 
-At n = 316,228, four workers are fastest (0.2645 seconds), with a 2.005× median speedup only slightly above the 2× threshold. Four and six workers first beat the serial median at n = 100,000 on this grid; two and eight first do so at n = 316,228. These are first observed sampled crossings, not precisely located cutoffs. The six-worker advantage at n = 100,000 is only about 4% and should not be treated as a robust tuned threshold.
+### Speedup as input size increases
 
-Small-input results remain dominated by parallel overhead: below n = 100,000 all measured parallel configurations are slower than serial. More workers create more processes and chunks; the coordinator still merges the sorted chunks serially. With six chunks, pairwise merging carries an unmatched run forward, so the merge tree is not perfectly balanced. These architectural features explain why worker count need not translate proportionally into speedup, but their individual time contributions were not profiled.
+![Speedup curves and paired-trial variability through ten million elements](benchmark-large-2468-speedup.png)
 
-The implementation still performs O(n log n) total sorting work. The purpose of parallelization is to overlap independent work. These results cover one Apple M3, one integer input distribution, and this input-size range, with no CPU affinity, background-load, or thermal control. No claim of an optimal worker count outside this experiment or out-of-memory scalability is made. The sorting function's default remains 2; benchmark commands explicitly select the comparison set.
+Both panels use a logarithmic input-size axis and a linear speedup axis; the right panel enlarges the last two decades. Lines represent ratios of medians, whereas faint dots are individual paired-trial speedups using the serial and parallel times from the same input/repetition. These dots show variability, not confidence intervals around the line.
+
+Increasing the input size does not guarantee monotonically increasing speedup. In this run, the six-worker curve falls from 2.326× at n = 316,228 to 1.745× at n = 1,000,000, then rises to 2.668× and 3.001× at the two largest sizes. Runtime variability is visible in the scatter; its causes were not profiled. For eight workers, speedup rises from 2.961× to 2.999× as n grows from 3,162,278 to 10,000,000, an increase of only about 1.3%. That is evidence of diminishing gains over the last measured interval, not proof of a permanent plateau or a measured memory-bandwidth limit.
+
+All four worker configurations first beat the serial median at n = 100,000 in this experiment. Below that sampled size, parallel overhead outweighs the observed benefit. The two-worker time reduction at n = 100,000 is only about 3.4%, so the first crossing should not be treated as a validated cutoff. Section 1d gives the crossover brackets and mechanism analysis.
+
+The total sorting work remains O(n log n). Additional workers increase the number of processes and chunks while final merging remains serial; elapsed-time savings come from overlapping independent block sorts. The measurements cover one Apple M3, one integer input distribution, and the tested range, with no CPU-affinity, background-load, or thermal control. The sorting function's default remains 2; the benchmark explicitly selects 2/4/6/8 workers. No observations were discarded, and the plotted scatter and CSVs preserve the measured variability.
 
 ## 1d — Graduate critical thinking and systems analysis
 
-The analysis below uses only the final 2/4/6/8-worker experiment in [benchmark-workers-2468-summary.csv](benchmark-workers-2468-summary.csv), its [raw measurements](benchmark-workers-2468-runs.csv), and the current implementation. Speedups are ratios of five-run median times, consistent with Section 1c.
+The analysis below uses only the expanded 2/4/6/8-worker experiment through ten million elements in [benchmark-large-2468-summary.csv](benchmark-large-2468-summary.csv), its [raw measurements](benchmark-large-2468-runs.csv), and the current implementation. Speedups are ratios of five-run median times, consistent with Section 1c.
 
 ### 1. The crossover point
 
-For a fixed worker count p, the crossover size n* is approximately where parallel and serial runtimes become equal. In the current log-log plot, the first sampled size with a parallel median below the serial median depends on p:
+For a fixed worker count p, the crossover size n* is approximately where parallel and serial runtimes become equal. In the current log-log plot, all four configurations first have a parallel median below the serial median at n = 100,000:
 
 | Workers p | Last sampled size slower than serial before the first crossing | First sampled size faster than serial | Observed crossover bracket |
 |---:|---:|---:|---|
-| 2 | 100,000 | 316,228 | 100,000–316,228 |
+| 2 | 31,623 | 100,000 | 31,623–100,000 |
 | 4 | 31,623 | 100,000 | 31,623–100,000 |
 | 6 | 31,623 | 100,000 | 31,623–100,000 |
-| 8 | 100,000 | 316,228 | 100,000–316,228 |
+| 8 | 31,623 | 100,000 | 31,623–100,000 |
 
-These brackets describe the measured grid, not exact mathematical thresholds or confidence intervals. For example, at n = 100,000, six workers take 0.155384 seconds versus 0.161436 seconds serial, only a 3.75% time reduction. That small advantage and the run-to-run variation do not justify treating 100,000 as an optimized cutoff. Finer sampling and repeated measurements near the crossings would be needed to select one reliably.
+These brackets describe the measured grid, not exact mathematical thresholds or confidence intervals. For example, at n = 100,000, two workers take 0.150262 seconds versus 0.155532 seconds serial, only a 3.39% time reduction. That small advantage and the run-to-run variation do not justify treating 100,000 as an optimized cutoff. Finer sampling and repeated measurements near the crossings would be needed to select one reliably.
 
 A useful conceptual decomposition is:
 
@@ -198,9 +212,9 @@ T_p(n) \approx T_{\mathrm{setup/communication}}(n,p)
              + T_{\mathrm{coordinator\ merge}}(n,p).
 $$
 
-This is an explanatory decomposition, not a fitted timing model; some communication and computation can overlap. Every call starts a fresh pool, transfers the chunks and sorted results, and merges them in the coordinator. When n is small, serial sorting takes little time, so the work saved through concurrency cannot compensate for those costs. At n = 100, for example, serial sorting takes about 0.000212 seconds, while parallel medians range from 0.107582 to 0.243572 seconds. Increasing n increases the useful work per task, making the fixed startup cost less important relative to sorting. Serialization and final merging still grow with data size, so they do not disappear.
+This is an explanatory decomposition, not a fitted timing model; some communication and computation can overlap. Every call starts a fresh pool, transfers the chunks and sorted results, and merges them in the coordinator. When n is small, serial sorting takes little time, so the work saved through concurrency cannot compensate for those costs. At n = 100, for example, serial sorting takes about 0.000111 seconds, while parallel medians range from 0.075231 to 0.147124 seconds. Increasing n increases the useful work per task, making the fixed startup cost less important relative to sorting. Serialization and final merging still grow with data size, so they do not disappear.
 
-More workers can reduce block-sort time but also increase process-management costs and the number of chunks to merge. That trade-off explains why eight workers do not necessarily cross over earlier than four. It is consistent with the code and measurements, but individual overhead components were not profiled. The observed crossing should be interpreted as specific to the measured input distribution and runtime conditions.
+More workers can reduce block-sort time but also increase process-management costs and the number of chunks to merge. The common sampled bracket does not establish identical true crossover points: the grid is coarse, and the trade-off between useful work and overhead differs with worker count. It is consistent with the code and measurements, but individual overhead components were not profiled. The observed crossing should be interpreted as specific to the measured input distribution and runtime conditions.
 
 ### 2. Amdahl's Law and the serial merge bottleneck
 
@@ -218,24 +232,24 @@ $$
 f=\frac{1-1/S_p}{1-1/p}.
 $$
 
-The best ratio of medians in the final experiment occurs at n = 1,000,000 with six workers. Using the saved unrounded timings for calculation:
+The best ratio of medians in the final experiment occurs at n = 10,000,000 with six workers; its tiny numerical advantage over eight is not statistically established. Using the saved unrounded timings for calculation:
 
 $$
-T_1 = 1.861752625\ \mathrm{s},\qquad
-T_6 = 0.783140500\ \mathrm{s},\qquad
-S_6 = \frac{T_1}{T_6} \approx 2.377291.
+T_1 = 24.633971750\ \mathrm{s},\qquad
+T_6 = 8.209128750\ \mathrm{s},\qquad
+S_6 = \frac{T_1}{T_6} \approx 3.000802.
 $$
 
 Therefore:
 
 $$
-f = \frac{1-1/2.377291}{1-1/6}
-  \approx 0.695224,
+f = \frac{1-1/3.000802}{1-1/6}
+  \approx 0.800107,
 \qquad
-1-f \approx 0.304776.
+1-f \approx 0.199893.
 $$
 
-The fitted **effective parallelizable fraction is about 69.5%**, with an **effective serial fraction of about 30.5%**. Here p = 6 refers to the configured worker processes, not all eight available cores; treating them as six identical processing resources is a simplifying model assumption, since no CPU affinity or per-core throughput was measured.
+The fitted **effective parallelizable fraction is about 80.0%**, with an **effective serial fraction of about 20.0%**. Here p = 6 refers to the configured worker processes, not all eight available cores; treating them as six identical processing resources is a simplifying model assumption, since no CPU affinity or per-core throughput was measured.
 
 The implementation identifies concrete limits on speedup:
 
@@ -248,7 +262,7 @@ The implementation identifies concrete limits on speedup:
 
 The final stage is a particularly clear serial bottleneck. Merging sorted runs costs O(n log p) coordinator work across the pairwise rounds, and the last merge alone processes all n elements. With six initial runs, the sequence of run counts is 6 → 3 → 2 → 1; an unmatched run is carried forward. Increasing p therefore does not simply divide the whole program's runtime by p.
 
-The 30.5% estimate is **not** a measured share of time spent in merging, nor a fraction of source-code lines. Real execution includes new parallel overhead, waiting, memory effects, and scheduling variability that the ideal formula does not represent separately. The fitted f absorbs their impact and can change with n, p, and machine conditions. Assigning the entire residual to one function or predicting a guaranteed maximum speedup from it would require stronger evidence. Component profiling would be needed to distinguish startup, transfer, worker computation, and merging. Six workers also had only a modest median advantage over four and eight, with overlapping runtime variability; the calculation uses the best observed result as requested, without establishing six as universally optimal.
+The 20.0% estimate is **not** a measured share of time spent in merging, nor a fraction of source-code lines. Real execution includes new parallel overhead, waiting, memory effects, and scheduling variability that the ideal formula does not represent separately. The fitted f absorbs their impact and can change with n, p, and machine conditions. Assigning the entire residual to one function or predicting a guaranteed maximum speedup from it would require stronger evidence. Component profiling would be needed to distinguish startup, transfer, worker computation, and merging. Six and eight workers are nearly tied at ten million elements; the calculation uses the best ratio of medians as requested without establishing six as optimal. The fitted f is specific to this input size and configuration. It must not be treated as an invariant of the code or used as a fixed ceiling for other data sizes. In a fixed-f Amdahl model, speedup approaches 1/(1-f) as p increases; our extension instead varies n at fixed p, so that limit is not evidence that the observed size-scaling curve has reached a plateau.
 
 ### 3. Python concurrency and distributed trade-offs
 
@@ -269,12 +283,14 @@ The performance trade-off shifts from local process overhead to network traffic,
 
 I first asked whether dividing the input across workers would reduce the amount of computation, apart from saving elapsed time through concurrency. After discussing the distinction between total work and wall-clock time with Codex, I selected its proposed fixed-pool design: balanced blocks sorted by the original `alg2`, followed by coordinator-side pairwise merging. Keeping recursion inside each worker avoids recursive process creation. Retaining the supplied baseline is an assignment requirement; choosing a coarse task per worker and serial final merging makes the implementation straightforward to inspect but leaves communication and merging on the critical path.
 
-I approved a benchmark with logarithmically spaced sizes, five repetitions, paired input values, and complete sorting-call timing. The initial comparison used two and four workers. I then asked to test eight and sixteen, before settling on **two, four, six, and eight** for the final comparison. Codex implemented and executed those experiments. The final set was measured together with a new serial baseline so differences between runs would not be mistaken for worker-count effects. Earlier records remain local; the published analysis uses only the final experiment.
+I approved a benchmark with logarithmically spaced sizes, five repetitions, paired input values, and complete sorting-call timing. The initial comparison used two and four workers. I then asked to test eight and sixteen, before settling on **two, four, six, and eight** for the final comparison. Codex implemented and executed those experiments. The final set was measured together with a new serial baseline so differences between runs would not be mistaken for worker-count effects. Earlier records remain separate; the current published analysis uses only the expanded experiment.
 
-I discussed the results and the three systems-analysis questions before requesting the README write-up. Six workers have the lowest median at one million elements in the final experiment, but four are faster at 316,228 and the larger-input variability overlaps. I therefore retain an explicit worker-count parameter rather than treating one setting as universally optimal. The cutoff remains 2 so the benchmark exposes small-input overhead instead of hiding it behind a tuned serial fallback. The Amdahl estimate describes effective scaling under a simplified model, while the MPI discussion proposes a distributed data flow that has not been implemented.
+I discussed the results and the three systems-analysis questions before requesting the README write-up. I then asked whether speedup would keep increasing with input size and requested measurements through ten million elements. Codex remeasured all sizes with fresh serial baselines, retaining five repeats per configuration. The largest-input medians put six and eight workers almost level, while the eight-worker gains diminish over the last interval. I therefore retain an explicit worker-count parameter and report the variability rather than treating one setting as universally optimal or claiming a proven plateau. The cutoff remains 2 so the benchmark exposes small-input overhead instead of hiding it behind a tuned serial fallback. The Amdahl estimate describes effective scaling under a simplified model, while the MPI discussion proposes a distributed data flow that has not been implemented.
 
 ## AI assistance
 
-I used OpenAI Codex to explain parallel architecture, benchmarking, Amdahl's Law, and the single-machine versus cluster trade-offs. Codex proposed the initial architecture and benchmark method, generated the implementation and tests, ran the experiments, produced the plots, and helped write and organize the README. I asked about the computational benefit of partitioning, selected the design after discussion, requested the worker-count revisions, and chose the final 2/4/6/8 comparison.
+I used OpenAI Codex to explain parallel architecture, benchmarking, Amdahl's Law, and the single-machine versus cluster trade-offs. Codex proposed the initial architecture and benchmark method, generated the implementation and tests, ran the experiments, produced the plots, and helped write and organize the README. I asked about the computational benefit of partitioning, selected the design after discussion, requested the worker-count revisions, chose the final 2/4/6/8 comparison, and requested the input-size extension.
 
-The reported executions and checks were performed through Codex: nine correctness tests, the final 225 timed sorts with output checks, comparison of saved summaries with raw timings, source-hash and baseline-code checks, and visual inspection of the chart. These are assisted results, not a separately documented independent run or independent demonstration of code mastery by me. I retain responsibility for understanding and defending the work. No classroom partner contribution is claimed in this record.
+The reported executions and checks were performed through Codex: nine correctness tests, the expanded 275 timed sorts with output checks, comparison of saved summaries with raw timings, source-hash and baseline-code checks, and visual inspection of the chart. These are assisted results, not a separately documented independent run or independent demonstration of code mastery by me. I retain responsibility for understanding and defending the work. No classroom partner contribution is claimed in this record.
+
+For the expanded-results update, Codex checked all saved medians, quartiles, speedups, paired-input records, and code hashes, updated the runtime and speedup figures, and recomputed the crossover brackets and effective Amdahl fractions. The unchanged sorting and benchmark implementations were not rerun solely for this documentation update.

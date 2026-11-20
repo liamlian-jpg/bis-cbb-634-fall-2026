@@ -1,0 +1,40 @@
+{
+  "started": "2026-11-19T16:14:29.606751-05:00",
+  "python": "3.12.6 (v3.12.6:a4a2d2b0d85, Sep  6 2024, 16:08:03) [Clang 13.0.0 (clang-1300.0.29.30)]",
+  "executable": "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+  "platform": "macOS-14.6-arm64-arm-64bit",
+  "machine": "arm64",
+  "logical_cpu_count": 8,
+  "start_method": "spawn",
+  "sizes": [
+    100,
+    316,
+    1000,
+    3162,
+    10000,
+    31623,
+    100000,
+    316228,
+    1000000,
+    3162278,
+    10000000
+  ],
+  "repeats": 5,
+  "seed": 634,
+  "worker_counts": [
+    2,
+    4,
+    6,
+    8
+  ],
+  "cutoff": 2,
+  "input_distribution": "uniform integers from -1,000,000,000 to 1,000,000,000 inclusive",
+  "timed_scope": "entire sorting call including pool creation/cleanup, splitting, IPC and merging",
+  "excluded": "input generation/copying, sorted reference, validation, output and plotting",
+  "summary": "median and inclusive sample quartiles; speedup is ratio of medians",
+  "parallel_sort_sha256": "704846a46d14ab5279bc0c393ef33be3c40a345aaefcb1707b4dc4d9d5c39204",
+  "benchmark_sha256": "afd5aeb92b89e1ce3059ba262cf6a34bc5253e611db971b5530ea663eb7bcf56",
+  "finished": "2026-11-19T16:23:09.445531-05:00",
+  "verified_timed_results": 275,
+  "algorithm_source_unchanged": true
+}
