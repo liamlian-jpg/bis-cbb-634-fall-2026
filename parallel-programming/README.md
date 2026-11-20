@@ -264,6 +264,29 @@ The final stage is a particularly clear serial bottleneck. Merging sorted runs c
 
 The 20.0% estimate is **not** a measured share of time spent in merging, nor a fraction of source-code lines. Real execution includes new parallel overhead, waiting, memory effects, and scheduling variability that the ideal formula does not represent separately. The fitted f absorbs their impact and can change with n, p, and machine conditions. Assigning the entire residual to one function or predicting a guaranteed maximum speedup from it would require stronger evidence. Component profiling would be needed to distinguish startup, transfer, worker computation, and merging. Six and eight workers are nearly tied at ten million elements; the calculation uses the best ratio of medians as requested without establishing six as optimal. The fitted f is specific to this input size and configuration. It must not be treated as an invariant of the code or used as a fixed ceiling for other data sizes. In a fixed-f Amdahl model, speedup approaches 1/(1-f) as p increases; our extension instead varies n at fixed p, so that limit is not evidence that the observed size-scaling curve has reached a plateau.
 
+#### Why six and eight workers are nearly tied
+
+At n = 10,000,000, six workers take 8.209129 seconds and eight take 8.215352 seconds, giving speedups of 3.000802× and 2.998529×. The median-time difference is only 0.00622 seconds (about 0.076%), much smaller than the observed run-to-run variation, and their interquartile ranges overlap substantially. These measurements show near-equal performance; they do not establish that six workers are reliably faster.
+
+Moving from six to eight workers reduces each block's size and can shorten local sorting, but it does not parallelize the coordinator's final merge. The final merge still processes all ten million elements, and preparing, serializing, and transferring the data also remains necessary. Larger inputs amortize fixed process-startup costs, but data-dependent transfer and merge costs grow with input size. Additional processes can also introduce scheduling costs and competition for shared resources such as memory bandwidth. The observed tie is consistent with local-sort savings being offset by other costs or runtime variation; without component profiling, the measurements cannot identify the dominant cause or demonstrate bandwidth saturation.
+
+The fitted 80% fraction explains diminishing returns, but a fixed-f Amdahl model alone does **not** predict a tie. For illustration, normalize the serial runtime to 100 seconds and use the rounded f = 0.80:
+
+| Workers | Idealized runtime calculation | Runtime (s) | Speedup |
+|---:|---|---:|---:|
+| 6 | 20 + 80 / 6 | 33.33 | 3.00× |
+| 8 | 20 + 80 / 8 | 30.00 | 3.33× |
+
+Thus, even ideal scaling of the parallel component would reduce total runtime by only about 10% from six to eight workers, although that component itself shrinks by 25%. With our 24.634-second serial baseline, this rounded model predicts about 7.39 seconds for eight workers; the observed median is 8.215 seconds. The discrepancy shows the limits of transferring the six-worker fit to eight workers. It cannot be assigned entirely to one overhead component, because the model also assumes ideal work division and equivalent worker throughput.
+
+Fitting the same formula separately to the eight-worker observation gives:
+
+$$
+f_8 = \frac{1-1/2.998529}{1-1/8} \approx 0.761718 \approx 76.2\%.
+$$
+
+The change from about 80.0% to 76.2% describes the lower effective scaling efficiency at eight workers, not a change in the fraction of source code that can execute concurrently. Both estimates absorb the combined effects of serial work, parallel overhead, and imperfect scaling. The useful next measurement would separate worker sorting, data transfer, and coordinator merging to determine which stage to optimize; increasing the worker count alone has little observed benefit between six and eight at this input size.
+
 ### 3. Python concurrency and distributed trade-offs
 
 For the current single-machine problem, a local `multiprocessing` pool is a practical choice: each worker sorts an independent in-memory block, while the coordinator handles input partitioning and final merging. For a 100-node hospital cluster processing terabytes of records that cannot fit in one machine's RAM, MPI through `mpi4py` would be the more appropriate of the two options. It supports explicit communication among processes on different machines, each with its own memory. The present local pool does not automatically distribute its workers across those machines.
