@@ -13,7 +13,7 @@
 - [Studio 5 — Data Exploration 2: PubMed Pipeline, Embeddings, and PCA](data-exploration-exercises/README.md)
 - [Studio 6 — Calculus and iterative algorithms](calculus-iterative-exercises/README.md)
 - [Studio 7 — Dynamic Programming](dynamic-programming/README.md)
-- [Parallel Programming — Merge Sort](parallel-programming/README.md)
+- [Studio 8 — Parallel Programming: Merge Sort](parallel-programming/README.md)
 
 ## Organization
 
@@ -31,4 +31,4 @@ Studio 6 uses the `calculus-iterative-exercises/` folder for a custom Explicit E
 
 Studio 7 uses the `dynamic-programming/` folder for forward and reverse DAG sweeps, co-optimal pathway counts, and bottleneck identification in the synthetic EGFR-to-MYC network. It includes the executed notebook, Python scripts, network figures, saved results, validation tests, and a README with analytical answers, design choices, and AI assistance. The original Canvas PDF and input CSV remain local.
 
-Parallel Programming uses the `parallel-programming/` folder for fixed-pool Merge Sort, correctness tests, and the 2/4/6/8-worker benchmark through ten million elements. It includes raw timings, summary statistics, a log-log scaling chart, and README analyses of crossover sizes, Amdahl's Law, and distributed-memory trade-offs. The original assignment remains local; the current analysis uses the expanded experiment, with the earlier published run retained separately.
+Studio 8 uses the `parallel-programming/` folder for fixed-pool Merge Sort, correctness tests, and the 2/4/6/8-worker benchmark through ten million elements. It includes raw timings, summary statistics, a log-log scaling chart, and README analyses of crossover sizes, Amdahl's Law, and distributed-memory trade-offs. Supplementary phase profiling includes instrumented timings, transfer controls, and a separate report. The original assignment remains local; the main benchmark analysis uses the expanded experiment, with the earlier published run retained separately.

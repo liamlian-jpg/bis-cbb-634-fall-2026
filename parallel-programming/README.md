@@ -1,4 +1,4 @@
-# Parallel Programming — Merge Sort
+# Studio 8 — Parallel Programming: Merge Sort
 
 [Back to course portfolio](../README.md)
 
